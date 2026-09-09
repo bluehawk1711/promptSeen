@@ -259,3 +259,96 @@ export interface AdConfig {
   /** AdMob reward ad unit ID. */
   rewardAdUnitId: string;
 }
+
+// ─── Push Notifications ────────────────────────────────────────────────────
+
+/** Stored FCM device token. */
+export interface FCMToken {
+  id: string;
+  /** The FCM registration token. */
+  token: string;
+  /** User ID (optional — anonymous devices still get tokens). */
+  userId: string | null;
+  /** Platform: 'ios', 'android', 'web'. */
+  platform: string;
+  /** App version when token was registered. */
+  appVersion: string;
+  /** Whether this token is still active. */
+  isActive: boolean;
+  createdAt: number;
+  lastSeenAt: number;
+}
+
+/** A sent push notification record. */
+export interface PushNotification {
+  id: string;
+  /** Notification title. */
+  title: string;
+  /** Notification body. */
+  body: string;
+  /** Optional image URL. */
+  imageUrl: string;
+  /** Deep link path (e.g., '/prompt/abc123'). */
+  data: Record<string, string>;
+  /** Target: 'all' | 'topic' | 'token'. */
+  target: 'all' | 'topic' | 'token';
+  /** Topic name (if target is 'topic'). */
+  topic: string;
+  /** Specific token (if target is 'token'). */
+  token: string;
+  /** Number of devices this was sent to. */
+  sentCount: number;
+  /** Number of devices that received it. */
+  deliveredCount: number;
+  /** Number of devices that opened/tapped this notification. */
+  openedCount: number;
+  /** UID of the admin who sent this. */
+  sentBy: string;
+  /** 'manual' | 'auto' (sent on prompt upload). */
+  source: 'manual' | 'auto';
+  /** Associated prompt ID (if auto-sent). */
+  promptId: string | null;
+  createdAt: number;
+}
+
+/** Aggregated notification analytics over a date range. */
+export interface NotificationAnalytics {
+  /** Total notifications sent. */
+  totalSent: number;
+  /** Total delivered. */
+  totalDelivered: number;
+  /** Total opened/tapped. */
+  totalOpened: number;
+  /** Delivery rate (delivered / sent). */
+  deliveryRate: number;
+  /** Open rate (opened / delivered). */
+  openRate: number;
+  /** Per-notification breakdown. */
+  notifications: PushNotification[];
+  /** Daily breakdown for charts. */
+  dailyBreakdown: NotificationDailyStats[];
+  /** Breakdown by source (manual vs auto). */
+  sourceBreakdown: { source: string; count: number; opened: number }[];
+  /** Platform breakdown from FCM tokens. */
+  platformBreakdown: { platform: string; count: number }[];
+}
+
+/** Daily notification stats for chart display. */
+export interface NotificationDailyStats {
+  date: string;
+  sent: number;
+  delivered: number;
+  opened: number;
+}
+
+/** Notification preferences for a device. */
+export interface NotificationPreferences {
+  /** Master toggle. */
+  enabled: boolean;
+  /** Receive new prompt notifications. */
+  newPrompts: boolean;
+  /** Receive daily prompt reminders. */
+  dailyPrompt: boolean;
+  /** Receive promotional notifications. */
+  promotional: boolean;
+}

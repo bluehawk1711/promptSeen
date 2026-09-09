@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, FlatList, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Heart } from 'lucide-react-native';
@@ -36,14 +37,14 @@ export default function FavoritesScreen() {
         </Text>
       </View>
 
-      <FlatList
+      <FlashList
         data={favoritePrompts}
         renderItem={({ item, index }) => (
           <PromptCard prompt={item} isLiked index={index} />
         )}
         keyExtractor={(item) => item.id}
         numColumns={2}
-        columnWrapperStyle={styles.row}
+
         contentContainerStyle={[
           styles.listContent,
           { paddingBottom: insets.bottom + 20 },
@@ -75,8 +76,7 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingBottom: 12 },
   title: { fontSize: 24, fontWeight: '700', letterSpacing: -0.5 },
   subtitle: { fontSize: 13, marginTop: 2 },
-  row: { justifyContent: 'space-between', paddingHorizontal: 12 },
-  listContent: { paddingTop: 4 },
+  listContent: { paddingTop: 4, paddingHorizontal: 12 },
   empty: { alignItems: 'center', paddingTop: 80, gap: 12 },
   emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 18, fontWeight: '600' },

@@ -24,6 +24,8 @@ import {
 import { db } from '@/lib/firebase';
 import type { Collection } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
+import { getQueryClient } from '@/providers/query-provider';
+import { queryKeys } from '@/lib/queries';
 
 interface CollectionsState {
   /** All collections owned by the current user. */
@@ -117,6 +119,14 @@ export function subscribeToUserCollections(userId: string): Unsubscribe {
         (d) => ({ id: d.id, ...d.data() } as Collection)
       );
       useCollectionsStore.setState({ collections, loading: false });
+
+      // Invalidate React Query caches
+      try {
+        const qc = getQueryClient();
+        qc.invalidateQueries({ queryKey: ['collections'] });
+      } catch {
+        // QueryProvider not mounted yet — ignore
+      }
     },
     (error) => {
       useCollectionsStore.setState({ error: messageFor(error), loading: false });

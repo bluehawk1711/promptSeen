@@ -253,12 +253,37 @@ async function seed() {
   });
   console.log(`   ✅ ${today}`);
 
+  // Seed sample FCM tokens
+  console.log(`\n📱 Seeding sample FCM tokens...`);
+  const sampleTokens = [
+    { id: "token-demo-001", token: "ExpoPushToken[demo-token-001]", userId: "user-demo-001", platform: "android", appVersion: "1.0.0", isActive: true, createdAt: Date.now(), lastSeenAt: Date.now() },
+    { id: "token-demo-002", token: "ExpoPushToken[demo-token-002]", userId: "user-demo-002", platform: "ios", appVersion: "1.0.0", isActive: true, createdAt: Date.now(), lastSeenAt: Date.now() },
+    { id: "token-demo-003", token: "ExpoPushToken[demo-token-003]", userId: null, platform: "android", appVersion: "1.0.0", isActive: true, createdAt: Date.now(), lastSeenAt: Date.now() },
+  ];
+  for (const token of sampleTokens) {
+    await setDoc(doc(db, "fcm_tokens", token.id), token);
+    console.log(`   ✅ ${token.platform} device ${token.id}`);
+  }
+
+  // Seed sample push notifications
+  console.log(`\n🔔 Seeding sample push notifications...`);
+  const sampleNotifications = [
+    { id: "notif-demo-001", title: "Welcome to PromptSeen! 🎉", body: "Discover thousands of curated AI prompts.", imageUrl: "", data: {}, target: "all", topic: "", token: "", sentCount: 3, deliveredCount: 3, sentBy: "admin-demo-001", source: "manual", promptId: null, createdAt: Date.now() - 86400000 },
+    { id: "notif-demo-002", title: "New Marketing Prompts ✨", body: "Check out 5 new prompts for your next campaign.", imageUrl: "", data: { promptId: "prompt-001" }, target: "all", topic: "", token: "", sentCount: 3, deliveredCount: 3, sentBy: "admin-demo-001", source: "auto", promptId: "prompt-001", createdAt: Date.now() - 43200000 },
+  ];
+  for (const notif of sampleNotifications) {
+    await setDoc(doc(db, "push_notifications", notif.id), notif);
+    console.log(`   ✅ ${notif.title}`);
+  }
+
   console.log("\n🎉 Seed complete!");
   console.log(`   ${CATEGORIES.length} categories`);
   console.log(`   ${PROMPTS.length} prompts`);
   console.log(`   1 admin user`);
   console.log(`   ${COLLECTIONS.length} collections`);
   console.log(`   ${SUBMISSIONS.length} submissions`);
+  console.log(`   ${sampleNotifications.length} push notifications`);
+  console.log(`   ${sampleTokens.length} FCM tokens`);
   console.log(`   1 daily stats entry\n`);
 }
 

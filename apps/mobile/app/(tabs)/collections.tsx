@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Plus, Folder, Globe, Lock, Trash2 } from 'lucide-react-native';
@@ -123,10 +124,11 @@ export default function CollectionsScreen() {
         </TouchableOpacity>
       </View>
 
-      <FlatList
+      <FlashList
         data={collections}
         renderItem={renderCollection}
         keyExtractor={(item) => item.id}
+
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

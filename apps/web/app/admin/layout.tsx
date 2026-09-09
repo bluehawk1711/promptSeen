@@ -13,8 +13,10 @@ import {
   Loader2,
   MessageSquare,
   BarChart3,
+  Bell,
 } from "lucide-react";
 import { AuthProvider, useAuth } from "@/lib/auth";
+import { QueryProvider } from "@/lib/query-provider";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
@@ -25,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/admin/submissions", label: "Submissions", icon: MessageSquare },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -133,9 +136,11 @@ export default function AdminLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className="bg-[oklch(0.12_0.03_30)] text-[oklch(0.96_0.01_60)]">
-        <AuthProvider>
-          <AdminContent>{children}</AdminContent>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <AdminContent>{children}</AdminContent>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

@@ -18,6 +18,8 @@ import { db } from '@/lib/firebase';
 import type { Prompt } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
 import { getDailyPrompt } from '@repo/shared/daily-prompt';
+import { getQueryClient } from '@/providers/query-provider';
+import { queryKeys } from '@/lib/queries';
 
 interface PromptsState {
   prompts: Prompt[];
@@ -113,6 +115,16 @@ export function subscribeToPrompts(): Unsubscribe {
         loading: false,
         connected: !snapshot.metadata.fromCache,
       });
+
+      // Invalidate React Query caches so components re-render
+      try {
+        const qc = getQueryClient();
+        qc.invalidateQueries({ queryKey: queryKeys.prompts });
+        qc.invalidateQueries({ queryKey: queryKeys.dailyPrompt });
+        qc.invalidateQueries({ queryKey: queryKeys.trending });
+      } catch {
+        // QueryProvider not mounted yet — ignore
+      }
     },
     (error) => {
       usePromptsStore.setState({

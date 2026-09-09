@@ -29,6 +29,13 @@
       "expo-asset",
       "expo-router",
       "expo-web-browser",
+      "expo-dev-client",
+      [
+        "expo-updates",
+        {
+          "url": "https://u.expo.dev/promptgallery"
+        }
+      ],
       [
         "expo-splash-screen",
         {

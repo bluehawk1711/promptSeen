@@ -26,6 +26,10 @@ export type {
   AnalyticsEvent,
   AnalyticsEventType,
   DailyStats,
+  // Notifications
+  FCMToken,
+  PushNotification,
+  NotificationPreferences,
 } from './types.js';
 
 // ─── Config ─────────────────────────────────────────────────────────────────

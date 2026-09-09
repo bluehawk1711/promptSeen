@@ -19,6 +19,8 @@ import {
 import { db } from '@/lib/firebase';
 import type { PromptSubmission } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
+import { getQueryClient } from '@/providers/query-provider';
+import { queryKeys } from '@/lib/queries';
 
 interface SubmissionsState {
   /** Current user's submissions. */
@@ -99,6 +101,14 @@ export function subscribeToMySubmissions(userId: string): Unsubscribe {
         (d) => ({ id: d.id, ...d.data() } as PromptSubmission)
       );
       useSubmissionsStore.setState({ mySubmissions, loading: false });
+
+      // Invalidate React Query caches
+      try {
+        const qc = getQueryClient();
+        qc.invalidateQueries({ queryKey: ['submissions'] });
+      } catch {
+        // QueryProvider not mounted yet — ignore
+      }
     },
     (error) => {
       useSubmissionsStore.setState({ error: messageFor(error), loading: false });

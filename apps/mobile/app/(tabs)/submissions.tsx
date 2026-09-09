@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { View, FlatList, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Send, Clock, CheckCircle, XCircle, FileText } from 'lucide-react-native';
@@ -90,10 +91,11 @@ export default function SubmissionsScreen() {
         ))}
       </View>
 
-      <FlatList
+      <FlashList
         data={mySubmissions}
         renderItem={renderSubmission}
         keyExtractor={(item) => item.id}
+
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

@@ -95,6 +95,23 @@ service cloud.firestore {
       }
     }
 
+    // ─── FCM Tokens ──────────────────────────────────────────────────
+    match /fcm_tokens/{tokenId} {
+      // Tokens are readable by admins; the app writes its own token.
+      allow read: if isAdmin();
+      allow create, update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // ─── Push Notifications ───────────────────────────────────────────
+    match /push_notifications/{notifId} {
+      // Only admins can read notification history.
+      allow read: if isAdmin();
+
+      // Notifications are sent via server — no direct client writes.
+      allow create, update, delete: if false;
+    }
+
     // ─── Helper functions ─────────────────────────────────────────────
     function isAdmin() {
       return request.auth != null

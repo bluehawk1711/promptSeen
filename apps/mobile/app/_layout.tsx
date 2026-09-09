@@ -1,12 +1,20 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { ThemeProvider } from '@/providers/theme-provider';
+import { QueryProvider } from '@/providers/query-provider';
 import { useOnboardingStore } from '@/store/onboarding';
 import { SplashProvider } from '@/components/splash-screen';
+import {
+  configureNotificationHandler,
+  registerForPushNotifications,
+  setupNotificationListeners,
+  removeNotificationListeners,
+  clearBadgeCount,
+} from '@/lib/notifications';
 import {
   subscribeToPrompts,
   unsubscribeFromPrompts,
@@ -16,15 +24,20 @@ import {
   unsubscribeFromCategories,
 } from '@/store/categories';
 
+// Configure notification appearance when app is in foreground
+configureNotificationHandler();
+
 /**
- * Root layout — animated splash → Firestore subscriptions → navigation.
+ * Root layout — splash → Firestore → notifications → navigation.
  */
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SplashProvider>
-        <AppContent />
-      </SplashProvider>
+      <QueryProvider>
+        <SplashProvider>
+          <AppContent />
+        </SplashProvider>
+      </QueryProvider>
     </GestureHandlerRootView>
   );
 }
@@ -54,6 +67,31 @@ function AppContent() {
       router.replace('/onboarding');
     }
   }, [hasCompleted, segments]);
+
+  // ── Push Notifications ──────────────────────────────────────────────────
+  useEffect(() => {
+    // Register for push notifications after a short delay
+    // (don't block the initial render)
+    const timer = setTimeout(() => {
+      registerForPushNotifications();
+    }, 2000);
+
+    // Set up notification listeners
+    setupNotificationListeners((promptId) => {
+      // Deep link to prompt detail when notification is tapped
+      if (promptId) {
+        router.push(`/prompt/${promptId}`);
+      }
+    });
+
+    // Clear badge when app opens
+    clearBadgeCount();
+
+    return () => {
+      clearTimeout(timer);
+      removeNotificationListeners();
+    };
+  }, []);
 
   return (
     <SafeAreaProvider>

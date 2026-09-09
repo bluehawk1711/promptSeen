@@ -1,13 +1,13 @@
 import { useState, useCallback, useMemo } from 'react';
 import {
   View,
-  FlatList,
   StyleSheet,
   RefreshControl,
   TextInput,
   Text,
   ScrollView,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Search, Sparkles, Wifi, WifiOff, TrendingUp } from 'lucide-react-native';
 
@@ -230,24 +230,18 @@ export default function HomeScreen() {
       {loading ? (
         renderLoadingSkeleton()
       ) : (
-        <FlatList
+        <FlashList
           data={filteredPrompts}
           renderItem={renderPrompt}
           keyExtractor={keyExtractor}
           numColumns={2}
-          columnWrapperStyle={styles.row}
+
           ListHeaderComponent={renderHeader}
           contentContainerStyle={[
             styles.listContent,
             { paddingBottom: insets.bottom + 20 },
           ]}
           showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              tintColor={colors.primary}
-            />
-          }
           ListEmptyComponent={
             <View style={styles.empty}>
               <Text style={[styles.emptyTitle, { color: colors.text }]}>

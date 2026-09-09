@@ -13,6 +13,8 @@ import {
 import { db } from '@/lib/firebase';
 import type { Category } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
+import { getQueryClient } from '@/providers/query-provider';
+import { queryKeys } from '@/lib/queries';
 
 interface CategoriesState {
   categories: Category[];
@@ -59,6 +61,14 @@ export function subscribeToCategories(): Unsubscribe {
         categories,
         loading: false,
       });
+
+      // Invalidate React Query caches
+      try {
+        const qc = getQueryClient();
+        qc.invalidateQueries({ queryKey: queryKeys.categories });
+      } catch {
+        // QueryProvider not mounted yet — ignore
+      }
     },
     (error) => {
       useCategoriesStore.setState({

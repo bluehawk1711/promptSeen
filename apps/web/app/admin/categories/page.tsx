@@ -1,24 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { useState } from "react";
 import {
   Plus,
   Pencil,
   Trash2,
   Loader2,
-  GripVertical,
 } from "lucide-react";
-import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,14 +28,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent } from "@/components/ui/card";
-import type { Category, CategoryCreateInput } from "@repo/shared/types";
+import {
+  useAdminCategories,
+  useCreateCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from "@/lib/admin-queries";
+import type { Category } from "@repo/shared/types";
 
 /**
- * Admin Categories management page — CRUD for category documents.
+ * Admin Categories management page — CRUD with React Query caching.
  */
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: categories = [], isLoading: loading } = useAdminCategories();
+  const createCategory = useCreateCategory();
+  const updateCategory = useUpdateCategory();
+  const deleteCategoryMutation = useDeleteCategory();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -59,26 +56,6 @@ export default function CategoriesPage() {
   const [formColor, setFormColor] = useState("#007AFF");
   const [formOrder, setFormOrder] = useState("0");
   const [formIsActive, setFormIsActive] = useState(true);
-  const [saving, setSaving] = useState(false);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const snap = await getDocs(
-        query(collection(db, "categories"), orderBy("order", "asc"))
-      );
-      setCategories(
-        snap.docs.map((d) => ({ id: d.id, ...d.data() } as Category))
-      );
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   const openCreateDialog = () => {
     setEditingCategory(null);
@@ -112,44 +89,27 @@ export default function CategoriesPage() {
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      const data = {
-        name: formName,
-        slug: formSlug,
-        icon: formIcon,
-        color: formColor,
-        order: Number(formOrder),
-        isActive: formIsActive,
-      };
+    const data = {
+      name: formName,
+      slug: formSlug,
+      icon: formIcon,
+      color: formColor,
+      order: Number(formOrder),
+      isActive: formIsActive,
+    };
 
-      if (editingCategory) {
-        await updateDoc(doc(db, "categories", editingCategory.id), data);
-      } else {
-        await addDoc(collection(db, "categories"), {
-          ...data,
-          promptCount: 0,
-          createdAt: Date.now(),
-        });
-      }
-
-      setDialogOpen(false);
-      fetchData();
-    } catch (error) {
-      console.error("Failed to save category:", error);
-    } finally {
-      setSaving(false);
+    if (editingCategory) {
+      await updateCategory.mutateAsync({ id: editingCategory.id, data });
+    } else {
+      await createCategory.mutateAsync(data);
     }
+
+    setDialogOpen(false);
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, "categories", id));
-      setDeleteConfirm(null);
-      fetchData();
-    } catch (error) {
-      console.error("Failed to delete category:", error);
-    }
+    await deleteCategoryMutation.mutateAsync(id);
+    setDeleteConfirm(null);
   };
 
   if (loading) {
@@ -343,8 +303,18 @@ export default function CategoriesPage() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={saving || !formName || !formSlug}>
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            <Button
+              onClick={handleSave}
+              disabled={
+                createCategory.isPending ||
+                updateCategory.isPending ||
+                !formName ||
+                !formSlug
+              }
+            >
+              {(createCategory.isPending || updateCategory.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               {editingCategory ? "Save Changes" : "Create Category"}
             </Button>
           </div>
@@ -370,7 +340,11 @@ export default function CategoriesPage() {
             <Button
               variant="destructive"
               onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleteCategoryMutation.isPending}
             >
+              {deleteCategoryMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Delete
             </Button>
           </div>

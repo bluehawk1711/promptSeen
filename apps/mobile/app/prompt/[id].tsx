@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -23,7 +23,6 @@ import {
   Bookmark,
   Eye,
   Copy,
-  ChevronRight,
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -32,13 +31,20 @@ import { useFavoritesStore } from '@/store/favorites';
 import { useCategoriesStore } from '@/store/categories';
 import { useRewardAd } from '@/components/reward-ad';
 import { ShareCard } from '@/components/share-card';
+import { useRelatedPromptsQuery } from '@/lib/queries';
+import type { Prompt } from '@repo/shared/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_PADDING = 14;
 
 /**
  * Prompt Detail — premium dark theme with blurred locked content,
- * golden image frame, and "More Prompts" grid.
+ * golden image frame, and infinite-scroll "More Prompts" grid.
+ *
+ * Related prompts are fetched with useInfiniteQuery:
+ * - Initial load: 10 items
+ * - Each page: 10 more items
+ * - Cached for 2.5 minutes (staleTime)
+ * - Scroll triggers getNextPageParam when near bottom
  */
 export default function PromptDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -59,17 +65,29 @@ export default function PromptDetailScreen() {
   const isPremiumLocked = prompt?.isPremium && !isUnlocked(prompt.id);
   const category = prompt ? getCategoryById(prompt.categoryId) : null;
 
+  // ── Infinite scroll related prompts ─────────────────────────────────
+  const {
+    data: relatedData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: relatedLoading,
+  } = useRelatedPromptsQuery(
+    prompt?.categoryId ?? '',
+    prompt?.id ?? ''
+  );
+
+  // Flatten all pages into a single array
   const morePrompts = useMemo(() => {
-    if (!prompt) return [];
-    return prompts
-      .filter(
-        (p) =>
-          p.id !== prompt.id &&
-          p.categoryId === prompt.categoryId &&
-          p.isActive
-      )
-      .slice(0, 6);
-  }, [prompts, prompt]);
+    if (!relatedData?.pages) return [];
+    return relatedData.pages.flatMap((page) => page.prompts);
+  }, [relatedData]);
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleCopy = async () => {
     if (!prompt || isPremiumLocked) return;
@@ -133,6 +151,16 @@ export default function PromptDetailScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        onScroll={(e) => {
+          // Trigger load more when user scrolls near the bottom
+          const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+          const isNearBottom =
+            layoutMeasurement.height + contentOffset.y >= contentSize.height - 300;
+          if (isNearBottom) {
+            loadMore();
+          }
+        }}
+        scrollEventThrottle={100}
       >
         {/* ── Hero Image with Golden Frame ──────────────────────────── */}
         <View style={styles.heroSection}>
@@ -307,12 +335,14 @@ export default function PromptDetailScreen() {
           </Animated.View>
         )}
 
-        {/* ── More Prompts ──────────────────────────────────────────── */}
+        {/* ── More Prompts (infinite scroll) ───────────────────────── */}
         {morePrompts.length > 0 && (
           <View style={styles.moreSection}>
             <View style={styles.moreHeader}>
               <Text style={styles.moreIcon}>🔢</Text>
-              <Text style={styles.moreTitle}>More Prompts</Text>
+              <Text style={styles.moreTitle}>
+                More Prompts ({morePrompts.length})
+              </Text>
             </View>
 
             <View style={styles.moreGrid}>
@@ -322,7 +352,10 @@ export default function PromptDetailScreen() {
                   <TouchableOpacity
                     key={rp.id}
                     style={styles.moreCard}
-                    onPress={() => router.push(`/prompt/${rp.id}`)}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      router.push(`/prompt/${rp.id}`);
+                    }}
                     activeOpacity={0.85}
                   >
                     <Image
@@ -342,6 +375,35 @@ export default function PromptDetailScreen() {
                   </TouchableOpacity>
                 );
               })}
+            </View>
+
+            {/* Loading more indicator */}
+            {isFetchingNextPage && (
+              <View style={styles.loadingMore}>
+                <ActivityIndicator size="small" color="#FF7A2E" />
+                <Text style={styles.loadingMoreText}>Loading more prompts...</Text>
+              </View>
+            )}
+
+            {/* End of list indicator */}
+            {!hasNextPage && morePrompts.length > 10 && (
+              <View style={styles.endOfList}>
+                <Text style={styles.endOfListText}>You've seen all related prompts ✓</Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* Loading state for related prompts */}
+        {relatedLoading && morePrompts.length === 0 && (
+          <View style={styles.moreSection}>
+            <View style={styles.moreHeader}>
+              <Text style={styles.moreIcon}>🔢</Text>
+              <Text style={styles.moreTitle}>More Prompts</Text>
+            </View>
+            <View style={styles.loadingMore}>
+              <ActivityIndicator size="small" color="#FF7A2E" />
+              <Text style={styles.loadingMoreText}>Loading related prompts...</Text>
             </View>
           </View>
         )}
@@ -621,7 +683,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 
-  // ── More Prompts ────────────────────────────────────────────────────
+  // ── More Prompts (infinite scroll) ──────────────────────────────────
   moreSection: {
     marginTop: 4,
   },
@@ -684,6 +746,29 @@ const styles = StyleSheet.create({
   moreCardCategory: {
     fontSize: 10,
     color: '#B8956A',
+    fontWeight: '500',
+  },
+
+  // ── Loading / End states ────────────────────────────────────────────
+  loadingMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+  },
+  loadingMoreText: {
+    fontSize: 13,
+    color: '#B8956A',
+    fontWeight: '500',
+  },
+  endOfList: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  endOfListText: {
+    fontSize: 12,
+    color: '#6B5A4A',
     fontWeight: '500',
   },
 });

@@ -1,16 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import {
-  collection,
-  getDocs,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { useState } from "react";
 import {
   Plus,
   Pencil,
@@ -22,7 +12,6 @@ import {
   Search,
   Share2,
 } from "lucide-react";
-import { db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,19 +42,36 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageUpload } from "@/components/image-upload";
-import type { Prompt, Category } from "@repo/shared/types";
+import { notifyNewPrompt } from "@/lib/notifications";
+import { db } from "@/lib/firebase";
+import {
+  useAdminPrompts,
+  useCreatePrompt,
+  useUpdatePrompt,
+  useDeletePrompt,
+  useAdminCategories,
+} from "@/lib/admin-queries";
+import type { Prompt } from "@repo/shared/types";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "";
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? "ml_default";
 
 /**
- * Admin Prompts management page — CRUD for prompt documents
- * with integrated image upload pipeline.
+ * Admin Prompts management page — CRUD with React Query caching.
+ *
+ * Data flow:
+ * 1. useAdminPrompts() fetches and caches prompts (2.5 min staleTime)
+ * 2. useCreatePrompt/useUpdatePrompt/useDeletePrompt handle mutations
+ * 3. After mutation success, React Query invalidates cache → refetch
+ * 4. Firestore realtime listener on mobile also pushes updates
  */
 export default function PromptsPage() {
-  const [prompts, setPrompts] = useState<Prompt[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: prompts = [], isLoading: loading } = useAdminPrompts();
+  const { data: categories = [] } = useAdminCategories();
+  const createPrompt = useCreatePrompt();
+  const updatePrompt = useUpdatePrompt();
+  const deletePromptMutation = useDeletePrompt();
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -80,32 +86,7 @@ export default function PromptsPage() {
   const [formTags, setFormTags] = useState("");
   const [formIsActive, setFormIsActive] = useState(true);
   const [formIsPremium, setFormIsPremium] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [promptsSnap, categoriesSnap] = await Promise.all([
-        getDocs(query(collection(db, "prompts"), orderBy("order", "asc"))),
-        getDocs(query(collection(db, "categories"), orderBy("order", "asc"))),
-      ]);
-
-      setPrompts(
-        promptsSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Prompt))
-      );
-      setCategories(
-        categoriesSnap.docs.map((d) => ({ id: d.id, ...d.data() } as Category))
-      );
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
 
   const openCreateDialog = () => {
     setEditingPrompt(null);
@@ -136,68 +117,65 @@ export default function PromptsPage() {
   };
 
   const handleSave = async () => {
-    setSaving(true);
-    try {
-      const data: Omit<Prompt, "id" | "createdAt" | "updatedAt"> = {
-        text: formText,
-        imageUrl: formImageUrl,
-        cloudinaryPublicId: formCloudinaryId,
-        categoryId: formCategoryId,
-        order: Number(formOrder),
-        likesCount: editingPrompt?.likesCount ?? 0,
-        copiesCount: editingPrompt?.copiesCount ?? 0,
-        shareCount: editingPrompt?.shareCount ?? 0,
-        tags: formTags
-          .split(",")
-          .map((t) => t.trim().toLowerCase())
-          .filter(Boolean),
-        isActive: formIsActive,
-        isPremium: formIsPremium,
-      };
+    const data: Omit<Prompt, "id" | "createdAt" | "updatedAt"> = {
+      text: formText,
+      imageUrl: formImageUrl,
+      cloudinaryPublicId: formCloudinaryId,
+      categoryId: formCategoryId,
+      order: Number(formOrder),
+      likesCount: editingPrompt?.likesCount ?? 0,
+      copiesCount: editingPrompt?.copiesCount ?? 0,
+      shareCount: editingPrompt?.shareCount ?? 0,
+      tags: formTags
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean),
+      isActive: formIsActive,
+      isPremium: formIsPremium,
+    };
 
-      if (editingPrompt) {
-        await updateDoc(doc(db, "prompts", editingPrompt.id), {
-          ...data,
-          updatedAt: Date.now(),
-        });
-      } else {
-        await addDoc(collection(db, "prompts"), {
-          ...data,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        });
+    if (editingPrompt) {
+      await updatePrompt.mutateAsync({ id: editingPrompt.id, data });
+    } else {
+      const newId = await createPrompt.mutateAsync(data);
+
+      // Auto-notify all users about the new prompt
+      try {
+        const categoryName =
+          categories.find((c) => c.id === formCategoryId)?.name ?? "New";
+        await notifyNewPrompt(
+          db,
+          newId,
+          formText,
+          categoryName,
+          formImageUrl,
+          "admin"
+        );
+      } catch (err) {
+        console.warn("Failed to send auto-notification:", err);
       }
-
-      setDialogOpen(false);
-      fetchData();
-    } catch (error) {
-      console.error("Failed to save prompt:", error);
-    } finally {
-      setSaving(false);
     }
+
+    setDialogOpen(false);
   };
 
   const handleDelete = async (id: string) => {
-    try {
-      const prompt = prompts.find((p) => p.id === id);
-      if (prompt?.cloudinaryPublicId && CLOUD_NAME) {
-        try {
-          await fetch(`/api/cloudinary/delete`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ publicId: prompt.cloudinaryPublicId }),
-          });
-        } catch {
-          console.warn("Failed to delete Cloudinary image:", prompt.cloudinaryPublicId);
-        }
+    // Delete Cloudinary image first
+    const prompt = prompts.find((p) => p.id === id);
+    if (prompt?.cloudinaryPublicId && CLOUD_NAME) {
+      try {
+        await fetch(`/api/cloudinary/delete`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publicId: prompt.cloudinaryPublicId }),
+        });
+      } catch {
+        console.warn("Failed to delete Cloudinary image:", prompt.cloudinaryPublicId);
       }
-
-      await deleteDoc(doc(db, "prompts", id));
-      setDeleteConfirm(null);
-      fetchData();
-    } catch (error) {
-      console.error("Failed to delete prompt:", error);
     }
+
+    await deletePromptMutation.mutateAsync(id);
+    setDeleteConfirm(null);
   };
 
   const getCategoryName = (categoryId: string) =>
@@ -456,9 +434,16 @@ export default function PromptsPage() {
             </Button>
             <Button
               onClick={handleSave}
-              disabled={saving || !formText || !formImageUrl}
+              disabled={
+                createPrompt.isPending ||
+                updatePrompt.isPending ||
+                !formText ||
+                !formImageUrl
+              }
             >
-              {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              {(createPrompt.isPending || updatePrompt.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               {editingPrompt ? "Save Changes" : "Create Prompt"}
             </Button>
           </div>
@@ -485,7 +470,11 @@ export default function PromptsPage() {
             <Button
               variant="destructive"
               onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deletePromptMutation.isPending}
             >
+              {deletePromptMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               Delete
             </Button>
           </div>
