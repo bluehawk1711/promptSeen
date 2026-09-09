@@ -1,0 +1,261 @@
+/**
+ * Shared types for the PromptSeen monorepo.
+ *
+ * Both the React Native mobile app and the Next.js admin panel consume these.
+ */
+
+// ─── Firebase Config ────────────────────────────────────────────────────────
+
+export interface FirebaseConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+}
+
+export type EnvPrefix = 'EXPO_PUBLIC_' | 'NEXT_PUBLIC_';
+
+// ─── Prompt ─────────────────────────────────────────────────────────────────
+
+export interface Prompt {
+  id: string;
+  /** The prompt text the user can copy. */
+  text: string;
+  /** Optimized image URL from Cloudinary. */
+  imageUrl: string;
+  /** Cloudinary public_id for management (delete, transform). */
+  cloudinaryPublicId: string;
+  /** Reference to the category this prompt belongs to. */
+  categoryId: string;
+  /** Display order within the category. */
+  order: number;
+  /** Number of times this prompt has been liked. */
+  likesCount: number;
+  /** Number of times this prompt has been copied. */
+  copiesCount: number;
+  /** Number of times this prompt has been shared. */
+  shareCount: number;
+  /** Tags for search and filtering. Stored as lowercase tokens. */
+  tags: string[];
+  /** Whether this prompt is visible in the app. */
+  isActive: boolean;
+  /** Whether this prompt is locked behind a reward ad. */
+  isPremium: boolean;
+  /** Creation timestamp (ms since epoch). */
+  createdAt: number | null;
+  /** Last update timestamp (ms since epoch). */
+  updatedAt: number | null;
+}
+
+// ─── Category ───────────────────────────────────────────────────────────────
+
+export interface Category {
+  id: string;
+  /** Display name (e.g., "Marketing", "Creative Writing"). */
+  name: string;
+  /** URL-safe slug for routing (e.g., "marketing"). */
+  slug: string;
+  /** Emoji or icon identifier. */
+  icon: string;
+  /** Hex color for the category badge. */
+  color: string;
+  /** Display order. */
+  order: number;
+  /** Number of active prompts in this category (denormalized). */
+  promptCount: number;
+  /** Whether this category is visible. */
+  isActive: boolean;
+  createdAt: number | null;
+}
+
+export type CategoryCreateInput = Omit<Category, 'id' | 'promptCount' | 'createdAt'>;
+
+// ─── User / Auth ────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  /** Whether this user has admin privileges. */
+  isAdmin: boolean;
+  createdAt: number | null;
+}
+
+// ─── Cloudinary ─────────────────────────────────────────────────────────────
+
+export interface CloudinaryConfig {
+  cloudName: string;
+  uploadPreset: string;
+}
+
+export interface CloudinaryUploadResult {
+  secure_url: string;
+  public_id: string;
+  width: number;
+  height: number;
+  format: string;
+  bytes: number;
+}
+
+// ─── Backup ─────────────────────────────────────────────────────────────────
+
+export interface BackupMetadata {
+  /** ISO 8601 timestamp. */
+  timestamp: string;
+  /** Number of documents per collection. */
+  counts: Record<string, number>;
+  /** Which collections were included. */
+  collections: string[];
+}
+
+export interface BackupData {
+  metadata: BackupMetadata;
+  prompts: Prompt[];
+  categories: Category[];
+  users: UserProfile[];
+  userCollections: Collection[];
+  submissions: PromptSubmission[];
+}
+
+// ─── Collections ───────────────────────────────────────────────────────────
+
+export interface Collection {
+  id: string;
+  /** Owner's Firebase Auth UID. */
+  ownerId: string;
+  /** Display name (e.g., "My Marketing Prompts"). */
+  name: string;
+  /** Optional description. */
+  description: string;
+  /** Hex color for the collection badge. */
+  color: string;
+  /** Emoji icon. */
+  icon: string;
+  /** IDs of prompts in this collection. */
+  promptIds: string[];
+  /** Number of prompts (denormalized). */
+  promptCount: number;
+  /** Whether this collection is visible to others. */
+  isPublic: boolean;
+  /** Number of times this collection has been liked. */
+  likesCount: number;
+  /** Number of times this collection has been duplicated by other users. */
+  duplicatesCount: number;
+  createdAt: number | null;
+  updatedAt: number | null;
+}
+
+export type CollectionCreateInput = Omit<Collection, 'id' | 'promptCount' | 'likesCount' | 'duplicatesCount' | 'createdAt' | 'updatedAt'>;
+
+// ─── User-Submitted Prompts ─────────────────────────────────────────────────
+
+export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
+
+export interface PromptSubmission {
+  id: string;
+  /** UID of the user who submitted this. */
+  submitterUid: string;
+  /** Display name of the submitter. */
+  submitterName: string;
+  /** The prompt text submitted. */
+  text: string;
+  /** Optional image URL (user can attach an image). */
+  imageUrl: string;
+  /** Suggested category ID. */
+  suggestedCategoryId: string;
+  /** Tags suggested by the submitter. */
+  tags: string[];
+  /** Admin review status. */
+  status: SubmissionStatus;
+  /** Admin review notes (shown to the submitter on rejection). */
+  reviewNote: string;
+  /** UID of the admin who reviewed this. */
+  reviewedBy: string | null;
+  /** Timestamp of admin review. */
+  reviewedAt: number | null;
+  /** If approved, the ID of the prompt created from this submission. */
+  approvedPromptId: string | null;
+  createdAt: number | null;
+}
+
+// ─── Analytics ──────────────────────────────────────────────────────────────
+
+export type AnalyticsEventType =
+  | 'prompt_view'
+  | 'prompt_like'
+  | 'prompt_unlike'
+  | 'prompt_copy'
+  | 'prompt_share'
+  | 'prompt_premium_unlock'
+  | 'collection_create'
+  | 'collection_view'
+  | 'collection_prompt_add'
+  | 'collection_prompt_remove'
+  | 'submission_create'
+  | 'ad_banner_impression'
+  | 'ad_reward_request'
+  | 'ad_reward_complete'
+  | 'app_open'
+  | 'app_background';
+
+export interface AnalyticsEvent {
+  id: string;
+  /** Type of event. */
+  type: AnalyticsEventType;
+  /** UID of the user (anonymous for non-auth users). */
+  userId: string;
+  /** Associated prompt ID, if any. */
+  promptId?: string;
+  /** Associated collection ID, if any. */
+  collectionId?: string;
+  /** Additional metadata. */
+  metadata?: Record<string, string | number | boolean>;
+  /** Platform: 'ios', 'android', 'web'. */
+  platform: string;
+  /** App version. */
+  appVersion: string;
+  createdAt: number;
+}
+
+/** Aggregated daily stats — one document per day. */
+export interface DailyStats {
+  id: string;
+  /** Date key YYYY-MM-DD. */
+  date: string;
+  /** Unique active users. */
+  activeUsers: number;
+  /** Total prompt views. */
+  promptViews: number;
+  /** Total likes. */
+  likes: number;
+  /** Total copies. */
+  copies: number;
+  /** Total shares. */
+  shares: number;
+  /** Total ad impressions. */
+  adImpressions: number;
+  /** Total reward ad completions. */
+  rewardCompletes: number;
+  /** Total submissions. */
+  submissions: number;
+  /** New users. */
+  newUsers: number;
+  /** Top prompt IDs by engagement. */
+  topPromptIds: string[];
+  /** Top category IDs by engagement. */
+  topCategoryIds: string[];
+  createdAt: number;
+}
+
+// ─── Ad Types ───────────────────────────────────────────────────────────────
+
+export type AdType = 'banner' | 'reward';
+
+export interface AdConfig {
+  /** AdMob banner ad unit ID. */
+  bannerAdUnitId: string;
+  /** AdMob reward ad unit ID. */
+  rewardAdUnitId: string;
+}
