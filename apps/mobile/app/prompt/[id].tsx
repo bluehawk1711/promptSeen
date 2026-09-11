@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,8 +22,8 @@ import {
   Check,
   MoreHorizontal,
   Bookmark,
-  Eye,
   Copy,
+  LayoutGrid,
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -32,6 +33,7 @@ import { useCategoriesStore } from '@/store/categories';
 import { useRewardAd } from '@/components/reward-ad';
 import { ShareCard } from '@/components/share-card';
 import { useRelatedPromptsQuery } from '@/lib/queries';
+import { trackEvent, trackStat } from '@/lib/analytics';
 import type { Prompt } from '@repo/shared/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -65,6 +67,14 @@ export default function PromptDetailScreen() {
   const isPremiumLocked = prompt?.isPremium && !isUnlocked(prompt.id);
   const category = prompt ? getCategoryById(prompt.categoryId) : null;
 
+  // Track prompt view on mount
+  useState(() => {
+    if (id) {
+      trackEvent('prompt_view', { promptId: id });
+      trackStat('promptViews');
+    }
+  });
+
   // ── Infinite scroll related prompts ─────────────────────────────────
   const {
     data: relatedData,
@@ -94,6 +104,8 @@ export default function PromptDetailScreen() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await Clipboard.setStringAsync(prompt.text);
     setCopied(true);
+    trackEvent('prompt_copy', { promptId: prompt.id });
+    trackStat('copies');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -111,12 +123,16 @@ export default function PromptDetailScreen() {
     }
 
     incrementShares(prompt.id);
+    trackEvent('prompt_share', { promptId: prompt.id });
+    trackStat('shares');
   };
 
   const handleLike = () => {
     if (!prompt) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    toggleLike(prompt.id);
+    const wasLiked = toggleLike(prompt.id);
+    trackEvent(wasLiked ? 'prompt_like' : 'prompt_unlike', { promptId: prompt.id });
+    if (wasLiked) trackStat('likes');
   };
 
   const handleUnlock = async () => {
@@ -125,6 +141,7 @@ export default function PromptDetailScreen() {
     setUnlocking(true);
     try {
       await showRewardAd(prompt.id);
+      trackEvent('premium_unlock', { promptId: prompt.id });
     } finally {
       setUnlocking(false);
     }
@@ -178,27 +195,29 @@ export default function PromptDetailScreen() {
             style={[styles.headerTitle, { top: insets.top + 12 }]}
             numberOfLines={1}
           >
-            Prompt Det...
+            Prompt Detail
           </Text>
-
-          {/* Coin balance */}
-          <View style={[styles.coinBadge, { top: insets.top + 8 }]}>
-            <Text style={styles.coinIcon}>🪙</Text>
-            <Text style={styles.coinCount}>0</Text>
-            <TouchableOpacity style={styles.coinAdd}>
-              <Text style={styles.coinAddText}>+</Text>
-            </TouchableOpacity>
-          </View>
 
           {/* Bookmark & Menu */}
           <TouchableOpacity
             style={[styles.headerAction, { top: insets.top + 10, right: 52 }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              Alert.alert('Bookmarked', 'Added to your bookmarks');
+            }}
             activeOpacity={0.7}
           >
             <Bookmark size={20} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.headerAction, { top: insets.top + 10, right: 16 }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              const { Share } = require('react-native');
+              Share.share({
+                message: `Check out this prompt on PromptSeen:\n${prompt.text}\n\nhttps://promptseen.app/prompt/${prompt.id}`,
+              });
+            }}
             activeOpacity={0.7}
           >
             <MoreHorizontal size={20} color="#fff" />
@@ -256,11 +275,7 @@ export default function PromptDetailScreen() {
           <View style={styles.promptCardHeader}>
             <Text style={styles.promptLabel}>PROMPT STRING</Text>
             <View style={styles.promptStats}>
-              <Eye size={13} color="#B8956A" />
-              <Text style={styles.promptStatText}>
-                {prompt.copiesCount.toLocaleString()}
-              </Text>
-              <Copy size={13} color="#B8956A" style={{ marginLeft: 8 }} />
+              <Copy size={13} color="#B8956A" />
               <Text style={styles.promptStatText}>
                 {prompt.copiesCount.toLocaleString()}
               </Text>
@@ -339,7 +354,7 @@ export default function PromptDetailScreen() {
         {morePrompts.length > 0 && (
           <View style={styles.moreSection}>
             <View style={styles.moreHeader}>
-              <Text style={styles.moreIcon}>🔢</Text>
+              <LayoutGrid size={16} color="#FF7A2E" />
               <Text style={styles.moreTitle}>
                 More Prompts ({morePrompts.length})
               </Text>
@@ -388,7 +403,7 @@ export default function PromptDetailScreen() {
             {/* End of list indicator */}
             {!hasNextPage && morePrompts.length > 10 && (
               <View style={styles.endOfList}>
-                <Text style={styles.endOfListText}>You've seen all related prompts ✓</Text>
+                <Text style={styles.endOfListText}>You've seen all related prompts</Text>
               </View>
             )}
           </View>
@@ -398,7 +413,7 @@ export default function PromptDetailScreen() {
         {relatedLoading && morePrompts.length === 0 && (
           <View style={styles.moreSection}>
             <View style={styles.moreHeader}>
-              <Text style={styles.moreIcon}>🔢</Text>
+              <LayoutGrid size={16} color="#FF7A2E" />
               <Text style={styles.moreTitle}>More Prompts</Text>
             </View>
             <View style={styles.loadingMore}>
@@ -452,41 +467,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     zIndex: 10,
-  },
-  coinBadge: {
-    position: 'absolute',
-    right: 96,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(255,122,46,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,122,46,0.3)',
-    zIndex: 10,
-  },
-  coinIcon: { fontSize: 14 },
-  coinCount: {
-    color: '#FF7A2E',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  coinAdd: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#FF7A2E',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 2,
-  },
-  coinAddText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '800',
-    marginTop: -1,
   },
   headerAction: {
     position: 'absolute',
@@ -693,9 +673,6 @@ const styles = StyleSheet.create({
     gap: 8,
     paddingHorizontal: 16,
     marginBottom: 12,
-  },
-  moreIcon: {
-    fontSize: 16,
   },
   moreTitle: {
     fontSize: 18,

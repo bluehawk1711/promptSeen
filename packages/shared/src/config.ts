@@ -33,7 +33,7 @@ export function loadFirebaseConfig(
 }
 
 function getEnv(key: string): string {
-  const value =
-    typeof process !== 'undefined' ? process.env[key] : undefined;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const value = (typeof process !== 'undefined' && process !== null ? (process as any).env : undefined)[key];
   return value ?? '';
 }

@@ -2,6 +2,7 @@ import { memo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Sun, Clock, ChevronRight } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -66,7 +67,10 @@ export const DailyPromptCard = memo(function DailyPromptCard({
             style={styles.image}
             resizeMode="cover"
           />
-          <View style={styles.imageGradient} />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.7)']}
+            style={styles.imageGradient}
+          />
 
           {/* Daily Pick badge */}
           <View style={styles.badge}>
@@ -136,9 +140,6 @@ const styles = StyleSheet.create({
   },
   imageGradient: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: 'transparent',
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
   },
   badge: {
     position: 'absolute',

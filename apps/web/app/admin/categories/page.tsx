@@ -1,149 +1,106 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Loader2,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  useAdminCategories,
-  useCreateCategory,
-  useUpdateCategory,
-  useDeleteCategory,
-} from "@/lib/admin-queries";
-import type { Category } from "@repo/shared/types";
+import { useState } from 'react'
+import { Plus, Pencil, Trash2, Loader2, MoreHorizontal, FolderOpen } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { Badge } from '@/components/ui/badge'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent } from '@/components/ui/card'
+import { TableSkeleton } from '@/components/bionis/skeletons'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useAdminCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/lib/admin-queries'
+import { useToast } from '@/lib/use-toast'
+import type { Category } from '@repo/shared/types'
 
-/**
- * Admin Categories management page — CRUD with React Query caching.
- */
 export default function CategoriesPage() {
-  const { data: categories = [], isLoading: loading } = useAdminCategories();
-  const createCategory = useCreateCategory();
-  const updateCategory = useUpdateCategory();
-  const deleteCategoryMutation = useDeleteCategory();
+  const { data: categories = [], isLoading: loading } = useAdminCategories()
+  const createCategory = useCreateCategory()
+  const updateCategory = useUpdateCategory()
+  const deleteCategoryMutation = useDeleteCategory()
+  const toast = useToast()
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [formName, setFormName] = useState('')
+  const [formSlug, setFormSlug] = useState('')
+  const [formIsActive, setFormIsActive] = useState(true)
 
-  // Form state
-  const [formName, setFormName] = useState("");
-  const [formSlug, setFormSlug] = useState("");
-  const [formIcon, setFormIcon] = useState("");
-  const [formColor, setFormColor] = useState("#007AFF");
-  const [formOrder, setFormOrder] = useState("0");
-  const [formIsActive, setFormIsActive] = useState(true);
+  const openCreate = () => {
+    setEditingCategory(null)
+    setFormName('')
+    setFormSlug('')
+    setFormIsActive(true)
+    setSheetOpen(true)
+  }
 
-  const openCreateDialog = () => {
-    setEditingCategory(null);
-    setFormName("");
-    setFormSlug("");
-    setFormIcon("📂");
-    setFormColor("#007AFF");
-    setFormOrder(String(categories.length));
-    setFormIsActive(true);
-    setDialogOpen(true);
-  };
-
-  const openEditDialog = (cat: Category) => {
-    setEditingCategory(cat);
-    setFormName(cat.name);
-    setFormSlug(cat.slug);
-    setFormIcon(cat.icon);
-    setFormColor(cat.color);
-    setFormOrder(String(cat.order));
-    setFormIsActive(cat.isActive);
-    setDialogOpen(true);
-  };
+  const openEdit = (cat: Category) => {
+    setEditingCategory(cat)
+    setFormName(cat.name)
+    setFormSlug(cat.slug)
+    setFormIsActive(cat.isActive)
+    setSheetOpen(true)
+  }
 
   const handleSlugGenerate = (name: string) => {
-    setFormSlug(
-      name
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-|-$/g, "")
-    );
-  };
+    setFormSlug(name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
+  }
 
   const handleSave = async () => {
-    const data = {
-      name: formName,
-      slug: formSlug,
-      icon: formIcon,
-      color: formColor,
-      order: Number(formOrder),
-      isActive: formIsActive,
-    };
-
+    const data = { name: formName, slug: formSlug, icon: '📁', color: '#F26522', order: editingCategory?.order ?? categories.length, isActive: formIsActive }
     if (editingCategory) {
-      await updateCategory.mutateAsync({ id: editingCategory.id, data });
+      await updateCategory.mutateAsync({ id: editingCategory.id, data })
+      toast.success('Category updated', 'The category has been saved.')
     } else {
-      await createCategory.mutateAsync(data);
+      await createCategory.mutateAsync(data)
+      toast.success('Category created', 'The new category has been added.')
     }
-
-    setDialogOpen(false);
-  };
+    setSheetOpen(false)
+  }
 
   const handleDelete = async (id: string) => {
-    await deleteCategoryMutation.mutateAsync(id);
-    setDeleteConfirm(null);
-  };
+    await deleteCategoryMutation.mutateAsync(id)
+    toast.success('Category deleted', 'The category has been removed.')
+    setDeleteConfirm(null)
+  }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1"><div className="h-7 w-40 bg-muted animate-pulse rounded-lg" /><div className="h-4 w-32 bg-muted animate-pulse rounded-lg" /></div>
+          <div className="h-9 w-32 bg-muted animate-pulse rounded-lg" />
+        </div>
+        <TableSkeleton rows={5} cols={6} />
       </div>
-    );
+    )
   }
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-muted-foreground mt-1">
-            {categories.length} categories total
-          </p>
+          <h1 className="text-xl font-medium md:text-2xl">Categories</h1>
+          <p className="text-sm text-muted-foreground">{categories.length} categories total</p>
         </div>
-        <Button onClick={openCreateDialog}>
-          <Plus size={16} className="mr-2" />
-          Add Category
+        <Button onClick={openCreate} className="shrink-0">
+          <Plus size={16} className="mr-2" /> Add Category
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="p-0">
+      <Card className="border-0 shadow-sm overflow-hidden">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">#</TableHead>
                 <TableHead>Category</TableHead>
                 <TableHead>Slug</TableHead>
-                <TableHead>Color</TableHead>
                 <TableHead className="text-center">Prompts</TableHead>
                 <TableHead className="text-center">Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -151,49 +108,39 @@ export default function CategoriesPage() {
             </TableHeader>
             <TableBody>
               {categories.map((cat, i) => (
-                <TableRow key={cat.id}>
+                <TableRow key={cat.id} className="group">
                   <TableCell className="text-muted-foreground">{i + 1}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <span className="text-xl">{cat.icon}</span>
+                      <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                        <FolderOpen size={14} className="text-primary" />
+                      </div>
                       <span className="font-medium">{cat.name}</span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{cat.slug}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className="h-4 w-4 rounded-full border"
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      <span className="text-sm text-muted-foreground">{cat.color}</span>
-                    </div>
-                  </TableCell>
+                  <TableCell><Badge variant="secondary">{cat.slug}</Badge></TableCell>
                   <TableCell className="text-center">{cat.promptCount}</TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={cat.isActive ? "default" : "secondary"}>
-                      {cat.isActive ? "Active" : "Hidden"}
+                    <Badge variant={cat.isActive ? 'default' : 'secondary'}>
+                      {cat.isActive ? 'Active' : 'Hidden'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEditDialog(cat)}
-                      >
-                        <Pencil size={14} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteConfirm(cat.id)}
-                      >
-                        <Trash2 size={14} className="text-destructive" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <MoreHorizontal size={16} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEdit(cat)}>
+                          <Pencil size={14} className="mr-2" /> Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDeleteConfirm(cat.id)} className="text-destructive">
+                          <Trash2 size={14} className="mr-2" /> Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -202,154 +149,52 @@ export default function CategoriesPage() {
         </CardContent>
       </Card>
 
-      {/* Create/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {editingCategory ? "Edit Category" : "Create Category"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingCategory
-                ? "Update the category details."
-                : "Add a new category for prompts."}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-4 py-4">
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>{editingCategory ? 'Edit Category' : 'Create Category'}</SheetTitle>
+            <SheetDescription>{editingCategory ? 'Update the category details.' : 'Add a new category for prompts.'}</SheetDescription>
+          </SheetHeader>
+          <div className="flex flex-col gap-4 py-4 px-4">
             <div className="flex flex-col gap-2">
               <Label>Name *</Label>
-              <Input
-                value={formName}
-                onChange={(e) => {
-                  setFormName(e.target.value);
-                  if (!editingCategory) handleSlugGenerate(e.target.value);
-                }}
-                placeholder="e.g., Marketing"
-              />
+              <Input value={formName} onChange={(e) => { setFormName(e.target.value); if (!editingCategory) handleSlugGenerate(e.target.value) }} placeholder="e.g., Marketing" />
             </div>
-
             <div className="flex flex-col gap-2">
-              <Label>Slug *</Label>
-              <Input
-                value={formSlug}
-                onChange={(e) => setFormSlug(e.target.value)}
-                placeholder="e.g., marketing"
-              />
+              <Label>Slug</Label>
+              <Input value={formSlug} onChange={(e) => setFormSlug(e.target.value)} placeholder="auto-generated-from-name" disabled={!!editingCategory} />
+              <p className="text-xs text-muted-foreground">{editingCategory ? 'Slug cannot be changed after creation.' : 'Auto-generated from the name.'}</p>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Icon (emoji)</Label>
-                <Input
-                  value={formIcon}
-                  onChange={(e) => setFormIcon(e.target.value)}
-                  placeholder="📂"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={formColor}
-                    onChange={(e) => setFormColor(e.target.value)}
-                    className="w-12 h-10 p-1 cursor-pointer"
-                  />
-                  <Input
-                    value={formColor}
-                    onChange={(e) => setFormColor(e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Order</Label>
-                <Input
-                  type="number"
-                  value={formOrder}
-                  onChange={(e) => setFormOrder(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-2 pt-6">
-                <Switch
-                  checked={formIsActive}
-                  onCheckedChange={setFormIsActive}
-                />
-                <Label>Active</Label>
-              </div>
-            </div>
-
-            {/* Preview */}
-            <div className="rounded-lg border p-3 flex items-center gap-3">
-              <span className="text-2xl">{formIcon || "📂"}</span>
-              <div>
-                <p className="font-medium">{formName || "Category Name"}</p>
-                <p className="text-sm text-muted-foreground">{formSlug || "slug"}</p>
-              </div>
-              <Badge
-                className="ml-auto"
-                style={{ backgroundColor: formColor + "20", color: formColor }}
-              >
-                0 prompts
-              </Badge>
+            <div className="flex items-center gap-2">
+              <Switch checked={formIsActive} onCheckedChange={setFormIsActive} />
+              <Label>Active</Label>
             </div>
           </div>
-
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
+          <SheetFooter>
+            <Button variant="outline" onClick={() => setSheetOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave} disabled={createCategory.isPending || updateCategory.isPending || !formName || !formSlug}>
+              {(createCategory.isPending || updateCategory.isPending) && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {editingCategory ? 'Save Changes' : 'Create Category'}
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={
-                createCategory.isPending ||
-                updateCategory.isPending ||
-                !formName ||
-                !formSlug
-              }
-            >
-              {(createCategory.isPending || updateCategory.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {editingCategory ? "Save Changes" : "Create Category"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
-      {/* Delete Confirmation */}
-      <Dialog
-        open={deleteConfirm !== null}
-        onOpenChange={() => setDeleteConfirm(null)}
-      >
+      <Dialog open={deleteConfirm !== null} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Category</DialogTitle>
-            <DialogDescription>
-              Are you sure? Prompts in this category will become uncategorized.
-            </DialogDescription>
+            <DialogDescription>Are you sure? Prompts in this category will become uncategorized.</DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
-              disabled={deleteCategoryMutation.isPending}
-            >
-              {deleteCategoryMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={() => deleteConfirm && handleDelete(deleteConfirm)} disabled={deleteCategoryMutation.isPending}>
+              {deleteCategoryMutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
               Delete
             </Button>
           </div>
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

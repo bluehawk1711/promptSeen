@@ -112,6 +112,12 @@ service cloud.firestore {
       allow create, update, delete: if false;
     }
 
+    // ─── Settings (admin-only app config) ─────────────────────────────
+    match /settings/{settingId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
     // ─── Helper functions ─────────────────────────────────────────────
     function isAdmin() {
       return request.auth != null

@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import {
@@ -14,7 +15,7 @@ import {
   type User,
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase";
+import { getDb, getFirebaseAuth } from "@/lib/firebase";
 import type { UserProfile } from "@repo/shared/types";
 
 interface AuthContextType {
@@ -28,21 +29,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-/**
- * Auth provider — wraps the app with Firebase auth state.
- * Checks the `users` collection for admin role.
- */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const auth = getFirebaseAuth();
+    const db = getDb();
+
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
 
       if (firebaseUser) {
-        // Fetch user profile from Firestore to check admin role
         const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
         if (userDoc.exists()) {
           setProfile({
@@ -63,10 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string) => {
+    const auth = getFirebaseAuth();
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
+    const auth = getFirebaseAuth();
     await signOut(auth);
     setProfile(null);
   };

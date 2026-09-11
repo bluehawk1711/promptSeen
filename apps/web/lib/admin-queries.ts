@@ -24,8 +24,8 @@ import {
   where,
   limit as firestoreLimit,
 } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
-import type { Prompt, Category, UserProfile, PromptSubmission } from '@repo/shared/types';
+import { getDb } from '@/lib/firebase';
+import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification } from '@repo/shared/types';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ export function useAdminPrompts() {
     queryKey: adminQueryKeys.prompts,
     queryFn: async () => {
       const snap = await getDocs(
-        query(collection(db, 'prompts'), orderBy('order', 'asc'))
+        query(collection(getDb(), 'prompts'), orderBy('order', 'asc'))
       );
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Prompt));
     },
@@ -58,7 +58,7 @@ export function useCreatePrompt() {
 
   return useMutation({
     mutationFn: async (data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const docRef = await addDoc(collection(db, 'prompts'), {
+      const docRef = await addDoc(collection(getDb(), 'prompts'), {
         ...data,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -79,7 +79,7 @@ export function useUpdatePrompt() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Prompt> }) => {
-      await updateDoc(doc(db, 'prompts', id), {
+      await updateDoc(doc(getDb(), 'prompts', id), {
         ...data,
         updatedAt: Date.now(),
       });
@@ -96,7 +96,7 @@ export function useDeletePrompt() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await deleteDoc(doc(db, 'prompts', id));
+      await deleteDoc(doc(getDb(), 'prompts', id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
@@ -112,7 +112,7 @@ export function useAdminCategories() {
     queryKey: adminQueryKeys.categories,
     queryFn: async () => {
       const snap = await getDocs(
-        query(collection(db, 'categories'), orderBy('order', 'asc'))
+        query(collection(getDb(), 'categories'), orderBy('order', 'asc'))
       );
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Category));
     },
@@ -125,7 +125,7 @@ export function useCreateCategory() {
 
   return useMutation({
     mutationFn: async (data: Omit<Category, 'id' | 'promptCount' | 'createdAt'>) => {
-      const docRef = await addDoc(collection(db, 'categories'), {
+      const docRef = await addDoc(collection(getDb(), 'categories'), {
         ...data,
         createdAt: Date.now(),
       });
@@ -143,7 +143,7 @@ export function useUpdateCategory() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<Category> }) => {
-      await updateDoc(doc(db, 'categories', id), data);
+      await updateDoc(doc(getDb(), 'categories', id), data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
@@ -156,7 +156,7 @@ export function useDeleteCategory() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await deleteDoc(doc(db, 'categories', id));
+      await deleteDoc(doc(getDb(), 'categories', id));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
@@ -171,7 +171,7 @@ export function useAdminUsers() {
   return useQuery({
     queryKey: adminQueryKeys.users,
     queryFn: async () => {
-      const snap = await getDocs(collection(db, 'users'));
+      const snap = await getDocs(collection(getDb(), 'users'));
       return snap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserProfile));
     },
     staleTime: 2.5 * 60 * 1000,
@@ -185,7 +185,7 @@ export function useAdminSubmissions() {
     queryKey: adminQueryKeys.submissions,
     queryFn: async () => {
       const snap = await getDocs(
-        query(collection(db, 'submissions'), orderBy('createdAt', 'desc'))
+        query(collection(getDb(), 'submissions'), orderBy('createdAt', 'desc'))
       );
       return snap.docs.map((d) => ({ id: d.id, ...d.data() } as PromptSubmission));
     },
@@ -208,7 +208,7 @@ export function useReviewSubmission() {
       reviewNote: string;
       reviewedBy: string;
     }) => {
-      await updateDoc(doc(db, 'submissions', id), {
+      await updateDoc(doc(getDb(), 'submissions', id), {
         status,
         reviewNote,
         reviewedBy,
@@ -221,6 +221,57 @@ export function useReviewSubmission() {
   });
 }
 
+// ─── Notification Hooks ─────────────────────────────────────────────────────
+
+export function useAdminNotifications() {
+  return useQuery({
+    queryKey: adminQueryKeys.notifications,
+    queryFn: async () => {
+      const snap = await getDocs(
+        query(collection(getDb(), 'push_notifications'), orderBy('createdAt', 'desc'))
+      );
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as PushNotification));
+    },
+    staleTime: 2.5 * 60 * 1000,
+  });
+}
+
+export function useNotificationStats() {
+  return useQuery({
+    queryKey: [...adminQueryKeys.notifications, 'stats'],
+    queryFn: async () => {
+      const notifsSnap = await getDocs(collection(getDb(), 'push_notifications'));
+      const tokensSnap = await getDocs(
+        query(collection(getDb(), 'fcm_tokens'), where('isActive', '==', true))
+      );
+
+      const notifs = notifsSnap.docs.map(
+        (d) => ({ id: d.id, ...d.data() } as PushNotification)
+      );
+
+      const totalSent = notifs.reduce((sum, n) => sum + (n.sentCount ?? 0), 0);
+      const totalDelivered = notifs.reduce((sum, n) => sum + (n.deliveredCount ?? 0), 0);
+      const totalOpened = notifs.reduce((sum, n) => sum + (n.openedCount ?? 0), 0);
+      const autoNotifs = notifs.filter((n) => n.source === 'auto').length;
+      const manualNotifs = notifs.filter((n) => n.source === 'manual').length;
+
+      return {
+        totalNotifs: notifs.length,
+        totalSent,
+        totalDelivered,
+        totalOpened,
+        openRate: totalSent > 0 ? ((totalOpened / totalSent) * 100).toFixed(1) : '0.0',
+        deliveryRate: totalSent > 0 ? ((totalDelivered / totalSent) * 100).toFixed(1) : '0.0',
+        autoNotifs,
+        manualNotifs,
+        activeTokens: tokensSnap.size,
+        recentNotifs: notifs.slice(0, 10),
+      };
+    },
+    staleTime: 2.5 * 60 * 1000,
+  });
+}
+
 // ─── Stats Hook ─────────────────────────────────────────────────────────────
 
 export function useAdminStats() {
@@ -229,10 +280,10 @@ export function useAdminStats() {
     queryFn: async () => {
       const [promptsSnap, categoriesSnap, usersSnap, submissionsSnap] =
         await Promise.all([
-          getDocs(collection(db, 'prompts')),
-          getDocs(collection(db, 'categories')),
-          getDocs(collection(db, 'users')),
-          getDocs(collection(db, 'submissions')),
+          getDocs(collection(getDb(), 'prompts')),
+          getDocs(collection(getDb(), 'categories')),
+          getDocs(collection(getDb(), 'users')),
+          getDocs(collection(getDb(), 'submissions')),
         ]);
 
       const prompts = promptsSnap.docs.map(

@@ -1,9 +1,24 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Alert, Modal, TextInput } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { Plus, Folder, Globe, Lock, Trash2 } from 'lucide-react-native';
+import {
+  Plus,
+  Folder,
+  Globe,
+  Lock,
+  Trash2,
+  X,
+  Flame,
+  Lightbulb,
+  Star,
+  Target,
+  Brain,
+  TrendingUp,
+  Palette,
+  Check,
+} from 'lucide-react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/theme/colors';
@@ -11,6 +26,23 @@ import { useCollectionsStore } from '@/store/collections';
 import { useFavoritesStore } from '@/store/favorites';
 import { usePromptsStore } from '@/store/prompts';
 import type { Collection } from '@repo/shared/types';
+
+const ICON_OPTIONS = [
+  { name: 'folder', Icon: Folder },
+  { name: 'flame', Icon: Flame },
+  { name: 'lightbulb', Icon: Lightbulb },
+  { name: 'star', Icon: Star },
+  { name: 'target', Icon: Target },
+  { name: 'brain', Icon: Brain },
+  { name: 'trending', Icon: TrendingUp },
+  { name: 'palette', Icon: Palette },
+] as const;
+
+const ICON_MAP = Object.fromEntries(ICON_OPTIONS.map(({ name, Icon }) => [name, Icon]));
+
+function getCollectionIcon(iconName: string) {
+  return ICON_MAP[iconName] ?? Folder;
+}
 
 /**
  * Collections screen — shows user's saved prompt collections.
@@ -20,11 +52,37 @@ export default function CollectionsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
 
-  const { collections, deleteCollection } = useCollectionsStore();
+  const { collections, createCollection, deleteCollection } = useCollectionsStore();
   const { likedIds } = useFavoritesStore();
   const { prompts } = usePromptsStore();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newCollectionName, setNewCollectionName] = useState('');
+  const [newCollectionIcon, setNewCollectionIcon] = useState('folder');
+  const [creating, setCreating] = useState(false);
+
+  const handleCreate = async () => {
+    if (!newCollectionName.trim()) return;
+    setCreating(true);
+    try {
+      await createCollection({
+        name: newCollectionName.trim(),
+        icon: newCollectionIcon,
+        ownerId: 'anonymous',
+        description: '',
+        color: '#FF7A2E',
+        promptIds: [],
+        isPublic: false,
+      });
+      setNewCollectionName('');
+      setNewCollectionIcon('folder');
+      setShowCreateModal(false);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to create collection');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleDelete = (col: Collection) => {
     Alert.alert(
@@ -47,6 +105,8 @@ export default function CollectionsScreen() {
       .map((id) => prompts.find((p) => p.id === id))
       .filter(Boolean);
 
+    const CollectionIcon = getCollectionIcon(item.icon);
+
     return (
       <Animated.View entering={FadeInDown.delay(index * 60).springify()}>
         <TouchableOpacity
@@ -67,7 +127,7 @@ export default function CollectionsScreen() {
                   },
                 ]}
               >
-                <Text style={{ fontSize: 10 }}>{item.icon}</Text>
+                <CollectionIcon size={14} color={colors.mutedForeground} />
               </View>
             ))}
             {previewPrompts.length === 0 && (
@@ -148,6 +208,78 @@ export default function CollectionsScreen() {
           </Animated.View>
         }
       />
+
+      {/* Create Collection Modal */}
+      <Modal
+        visible={showCreateModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCreateModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: colors.card }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                New Collection
+              </Text>
+              <TouchableOpacity onPress={() => setShowCreateModal(false)}>
+                <X size={20} color={colors.mutedForeground} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalBody}>
+              <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>
+                Icon
+              </Text>
+              <View style={styles.iconRow}>
+                {ICON_OPTIONS.map(({ name, Icon }) => (
+                  <TouchableOpacity
+                    key={name}
+                    style={[
+                      styles.iconOption,
+                      { backgroundColor: colors.muted },
+                      newCollectionIcon === name && {
+                        backgroundColor: colors.primary + '20',
+                        borderWidth: 2,
+                        borderColor: colors.primary,
+                      },
+                    ]}
+                    onPress={() => setNewCollectionIcon(name)}
+                  >
+                    <Icon
+                      size={20}
+                      color={newCollectionIcon === name ? colors.primary : colors.mutedForeground}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={[styles.modalLabel, { color: colors.mutedForeground }]}>
+                Name
+              </Text>
+              <TextInput
+                style={[styles.modalInput, { color: colors.text, backgroundColor: colors.muted, borderColor: colors.border }]}
+                value={newCollectionName}
+                onChangeText={setNewCollectionName}
+                placeholder="e.g., Marketing Prompts"
+                placeholderTextColor={colors.mutedForeground}
+                maxLength={30}
+                autoFocus
+              />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.modalBtn, { backgroundColor: colors.primary }]}
+              onPress={handleCreate}
+              disabled={!newCollectionName.trim() || creating}
+            >
+              <Text style={styles.modalBtnText}>
+                {creating ? 'Creating...' : 'Create Collection'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -199,4 +331,50 @@ const styles = StyleSheet.create({
   emptyIcon: { width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 18, fontWeight: '600' },
   emptySubtitle: { fontSize: 14, textAlign: 'center', maxWidth: 240, lineHeight: 20 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    width: '100%',
+    borderRadius: 20,
+    padding: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  modalTitle: { fontSize: 18, fontWeight: '700' },
+  modalBody: { marginBottom: 16 },
+  modalLabel: { fontSize: 13, fontWeight: '600', marginBottom: 8 },
+  iconRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+  },
+  iconOption: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
+  modalBtn: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  modalBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
 });

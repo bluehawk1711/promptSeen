@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   try {
     // Get active token count
     const tokensQuery = query(
-      collection(db, "fcm_tokens"),
+      collection(getDb(), "fcm_tokens"),
       where("isActive", "==", true)
     );
     const tokensSnap = await getDocs(tokensQuery);
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     // Get recent notifications
     const notifQuery = query(
-      collection(db, "push_notifications"),
+      collection(getDb(), "push_notifications"),
       orderBy("createdAt", "desc"),
       limit(20)
     );

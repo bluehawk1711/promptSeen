@@ -2,12 +2,14 @@ import { memo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Copy, Star } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/theme/colors';
 import { useFavoritesStore } from '@/store/favorites';
+import { trackEvent, trackStat } from '@/lib/analytics';
 import type { Prompt } from '@repo/shared/types';
 
 interface PromptCardProps {
@@ -39,7 +41,9 @@ export const PromptCard = memo(function PromptCard({
 
   const handleLikePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    toggleLike(prompt.id);
+    const wasLiked = toggleLike(prompt.id);
+    trackEvent(wasLiked ? 'prompt_like' : 'prompt_unlike', { promptId: prompt.id });
+    if (wasLiked) trackStat('likes');
   };
 
   return (
@@ -66,7 +70,10 @@ export const PromptCard = memo(function PromptCard({
             resizeMode="cover"
           />
           {/* Gradient overlay at bottom */}
-          <View style={styles.gradient} />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.7)']}
+            style={styles.gradient}
+          />
 
           {/* Like button — glass style */}
           <TouchableOpacity
@@ -164,10 +171,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 60,
-    backgroundColor: 'transparent',
-    // Linear gradient approximation for RN
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
   },
   likeBtn: {
     position: 'absolute',

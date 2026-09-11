@@ -233,25 +233,28 @@ async function seed() {
     console.log(`   ✅ [${sub.status}] ${sub.text.slice(0, 50)}...`);
   }
 
-  // Seed daily stats
-  console.log(`\n📊 Seeding daily stats...`);
-  const today = new Date().toISOString().split("T")[0];
-  await setDoc(doc(db, "daily_stats", today), {
-    date: today,
-    activeUsers: 42,
-    promptViews: 1250,
-    likes: 89,
-    copies: 56,
-    shares: 23,
-    adImpressions: 312,
-    rewardCompletes: 18,
-    submissions: 3,
-    newUsers: 7,
-    topPromptIds: ["prompt-001", "prompt-005", "prompt-008"],
-    topCategoryIds: ["marketing", "coding"],
-    createdAt: Date.now(),
-  });
-  console.log(`   ✅ ${today}`);
+  // Seed daily stats (last 14 days)
+  console.log(`\n📊 Seeding daily stats (14 days)...`);
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    await setDoc(doc(db, "daily_stats", dateStr), {
+      date: dateStr,
+      activeUsers: 20 + Math.floor(Math.random() * 60),
+      promptViews: 400 + Math.floor(Math.random() * 800),
+      likes: 20 + Math.floor(Math.random() * 80),
+      copies: 10 + Math.floor(Math.random() * 40),
+      shares: 5 + Math.floor(Math.random() * 25),
+      adImpressions: 100 + Math.floor(Math.random() * 300),
+      rewardCompletes: 5 + Math.floor(Math.random() * 20),
+      submissions: Math.floor(Math.random() * 5),
+      newUsers: 2 + Math.floor(Math.random() * 8),
+      topPromptIds: ["prompt-001", "prompt-005", "prompt-008"],
+      topCategoryIds: ["marketing", "coding"],
+      createdAt: d.getTime(),
+    });
+    console.log(`   ✅ ${dateStr}`);
+  }
 
   // Seed sample FCM tokens
   console.log(`\n📱 Seeding sample FCM tokens...`);
@@ -265,11 +268,29 @@ async function seed() {
     console.log(`   ✅ ${token.platform} device ${token.id}`);
   }
 
-  // Seed sample push notifications
+  // Seed sample users
+  console.log(`\n👥 Seeding sample users...`);
+  const sampleUsers = [
+    { uid: "user-demo-001", email: "john@example.com", displayName: "John Doe", favorites: ["prompt-001", "prompt-005"], createdAt: Date.now() - 604800000 },
+    { uid: "user-demo-002", email: "jane@example.com", displayName: "Jane Smith", favorites: ["prompt-003", "prompt-008"], createdAt: Date.now() - 432000000 },
+    { uid: "user-demo-003", email: "bob@example.com", displayName: "Bob Wilson", favorites: ["prompt-012"], createdAt: Date.now() - 259200000 },
+    { uid: "user-demo-004", email: "alice@example.com", displayName: "Alice Chen", favorites: ["prompt-002", "prompt-007", "prompt-015"], createdAt: Date.now() - 172800000 },
+    { uid: "user-demo-005", email: "charlie@example.com", displayName: "Charlie Brown", favorites: [], createdAt: Date.now() - 86400000 },
+  ];
+  for (const user of sampleUsers) {
+    const { uid, ...data } = user;
+    await setDoc(doc(db, "users", uid), data);
+    console.log(`   ✅ ${user.email}`);
+  }
+
+  // Seed sample push notifications (last 7 days)
   console.log(`\n🔔 Seeding sample push notifications...`);
   const sampleNotifications = [
-    { id: "notif-demo-001", title: "Welcome to PromptSeen! 🎉", body: "Discover thousands of curated AI prompts.", imageUrl: "", data: {}, target: "all", topic: "", token: "", sentCount: 3, deliveredCount: 3, sentBy: "admin-demo-001", source: "manual", promptId: null, createdAt: Date.now() - 86400000 },
-    { id: "notif-demo-002", title: "New Marketing Prompts ✨", body: "Check out 5 new prompts for your next campaign.", imageUrl: "", data: { promptId: "prompt-001" }, target: "all", topic: "", token: "", sentCount: 3, deliveredCount: 3, sentBy: "admin-demo-001", source: "auto", promptId: "prompt-001", createdAt: Date.now() - 43200000 },
+    { id: "notif-demo-001", title: "Welcome to PromptSeen! 🎉", body: "Discover thousands of curated AI prompts for marketing, coding, and more.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: "admin-demo-001", source: "manual", createdAt: Date.now() - 604800000 },
+    { id: "notif-demo-002", title: "New Marketing Prompts ✨", body: "Check out 5 new prompts for your next campaign.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: "admin-demo-001", source: "auto", createdAt: Date.now() - 432000000 },
+    { id: "notif-demo-003", title: "🔥 Trending: Coding Prompts", body: "These coding prompts are getting 3x more copies this week.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 4, openedCount: 2, sentBy: "admin-demo-001", source: "manual", createdAt: Date.now() - 259200000 },
+    { id: "notif-demo-004", title: "New Creative Writing Prompts", body: "Unleash your creativity with 8 new writing prompts.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: "admin-demo-001", source: "auto", createdAt: Date.now() - 172800000 },
+    { id: "notif-demo-005", title: "Weekly Digest 📊", body: "Your app got 1,250 prompt views this week. Keep it up!", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: "admin-demo-001", source: "manual", createdAt: Date.now() - 86400000 },
   ];
   for (const notif of sampleNotifications) {
     await setDoc(doc(db, "push_notifications", notif.id), notif);
@@ -282,6 +303,7 @@ async function seed() {
   console.log(`   1 admin user`);
   console.log(`   ${COLLECTIONS.length} collections`);
   console.log(`   ${SUBMISSIONS.length} submissions`);
+  console.log(`   ${sampleUsers.length} users`);
   console.log(`   ${sampleNotifications.length} push notifications`);
   console.log(`   ${sampleTokens.length} FCM tokens`);
   console.log(`   1 daily stats entry\n`);

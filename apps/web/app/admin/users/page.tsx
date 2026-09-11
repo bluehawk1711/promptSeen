@@ -1,16 +1,11 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import {
-  collection,
-  getDocs,
-  updateDoc,
-  doc,
-  orderBy,
-  query,
-} from "firebase/firestore";
+import { useState } from "react";
+import { updateDoc, doc } from "firebase/firestore";
+import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Shield, ShieldOff } from "lucide-react";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
+import { useAdminUsers, adminQueryKeys } from "@/lib/admin-queries";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,46 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { UserProfile } from "@repo/shared/types";
 
 /**
  * Admin Users management page — view and manage admin users.
  */
 export default function UsersPage() {
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: users = [], isLoading } = useAdminUsers();
+  const queryClient = useQueryClient();
   const [toggling, setToggling] = useState<string | null>(null);
 
-  const fetchUsers = useCallback(async () => {
-    try {
-      const snap = await getDocs(
-        query(collection(db, "users"), orderBy("createdAt", "desc"))
-      );
-      setUsers(
-        snap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserProfile))
-      );
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
-
-  const toggleAdmin = async (user: UserProfile) => {
+  const toggleAdmin = async (user: { uid: string; isAdmin: boolean }) => {
     setToggling(user.uid);
     try {
-      await updateDoc(doc(db, "users", user.uid), {
+      await updateDoc(doc(getDb(), "users", user.uid), {
         isAdmin: !user.isAdmin,
       });
-      setUsers((prev) =>
-        prev.map((u) =>
-          u.uid === user.uid ? { ...u, isAdmin: !u.isAdmin } : u
-        )
-      );
+      await queryClient.invalidateQueries({ queryKey: adminQueryKeys.users });
     } catch (error) {
       console.error("Failed to toggle admin:", error);
     } finally {
@@ -69,7 +40,7 @@ export default function UsersPage() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -87,7 +58,7 @@ export default function UsersPage() {
       </div>
 
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>

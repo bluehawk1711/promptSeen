@@ -20,23 +20,8 @@
       "collectionGroup": "prompts",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "tags", "arrayConfig": "CONTAINS" },
-        { "fieldPath": "order", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "prompts",
-      "queryScope": "COLLECTION",
-      "fields": [
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "likesCount", "order": "DESCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "categories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "order", "order": "ASCENDING" }
       ]
     },
     {
@@ -80,13 +65,6 @@
       ]
     },
     {
-      "collectionGroup": "daily_stats",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "date", "order": "ASCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "fcm_tokens",
       "queryScope": "COLLECTION",
       "fields": [
@@ -98,22 +76,8 @@
       "collectionGroup": "fcm_tokens",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "token", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "fcm_tokens",
-      "queryScope": "COLLECTION",
-      "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "isActive", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "push_notifications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {

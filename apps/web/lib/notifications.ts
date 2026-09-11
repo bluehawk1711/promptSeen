@@ -205,7 +205,7 @@ export async function notifyNewPrompt(
       : promptText;
 
   return sendPushNotification(db, {
-    title: `New ${categoryName} Prompt ✨`,
+    title: `New ${categoryName} Prompt`,
     body: truncatedText,
     imageUrl,
     data: { promptId, screen: 'prompt' },

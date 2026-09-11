@@ -16,6 +16,7 @@ import { Colors } from '@/theme/colors';
 import { usePromptsStore } from '@/store/prompts';
 import { useCategoriesStore } from '@/store/categories';
 import { useFavoritesStore } from '@/store/favorites';
+import { trackEvent, trackStat, trackActiveUser } from '@/lib/analytics';
 import { PromptCard } from '@/components/prompt-card';
 import { DailyPromptCard } from '@/components/daily-prompt-card';
 import { TrendingCard } from '@/components/trending-card';
@@ -40,6 +41,13 @@ export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Track screen view + active user on mount
+  useState(() => {
+    trackEvent('screen_view', { metadata: { screen: 'home' } });
+    trackActiveUser('anonymous');
+    trackStat('activeUsers');
+  });
+
   const dailyPrompt = useMemo(() => getDailyPrompt(), [prompts]);
 
   const dailyCategory = useMemo(() => {
@@ -60,6 +68,20 @@ export default function HomeScreen() {
     trendingPrompts.forEach((p) => map.set(p.id, getTrendingScore(p)));
     return map;
   }, [trendingPrompts]);
+
+  // Track search events
+  const handleSearch = useCallback((q: string) => {
+    setSearchQuery(q);
+    if (q.trim().length > 2) {
+      trackEvent('search', { metadata: { query: q } });
+    }
+  }, []);
+
+  // Track category filter events
+  const handleCategorySelect = useCallback((slug: string | null) => {
+    setSelectedCategory(slug);
+    trackEvent('category_filter', { metadata: { category: slug ?? 'all' } });
+  }, []);
 
   const filteredPrompts = useMemo(() => {
     let result = prompts.filter((p) => p.isActive);
@@ -160,7 +182,7 @@ export default function HomeScreen() {
           placeholder="Search prompts..."
           placeholderTextColor={colors.mutedForeground}
           value={searchQuery}
-          onChangeText={setSearchQuery}
+          onChangeText={handleSearch}
           returnKeyType="search"
         />
       </View>
@@ -213,7 +235,7 @@ export default function HomeScreen() {
       <CategoryChips
         categories={categories}
         selected={selectedCategory}
-        onSelect={setSelectedCategory}
+        onSelect={handleCategorySelect}
       />
 
       {/* Section title */}

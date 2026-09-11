@@ -3,9 +3,9 @@ import {
   RewardedAd,
   RewardedAdEventType,
   AdEventType,
-  TestIds,
 } from 'react-native-google-mobile-ads';
 import { useFavoritesStore } from '@/store/favorites';
+import { trackEvent, trackStat } from '@/lib/analytics';
 
 /**
  * Hook to show a reward ad and unlock a premium prompt.
@@ -22,7 +22,9 @@ export function useRewardAd() {
   const showRewardAd = useCallback(
     (promptId: string): Promise<boolean> => {
       return new Promise((resolve) => {
-        const rewarded = RewardedAd.createForAdRequest(TestIds.REWARDED);
+        const rewarded = RewardedAd.createForAdRequest(
+          process.env.EXPO_PUBLIC_ADMOB_REWARD_AD_UNIT_ID ?? ''
+        );
 
         let resolved = false;
 
@@ -45,6 +47,8 @@ export function useRewardAd() {
           RewardedAdEventType.EARNED_REWARD,
           () => {
             unlockPremium(promptId);
+            trackEvent('ad_reward_complete', { promptId });
+            trackStat('adImpressions');
             safeResolve(true);
           }
         );

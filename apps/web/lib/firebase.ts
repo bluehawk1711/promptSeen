@@ -1,23 +1,37 @@
-/**
- * Web (admin panel) Firebase initialization.
- *
- * Wraps the shared `initFirebase` with Next.js environment variables.
- * The admin panel uses NEXT_PUBLIC_ prefix for client-side Firebase config.
- */
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app'
+import { getFirestore, type Firestore, connectFirestoreEmulator } from 'firebase/firestore'
+import { getAuth, type Auth } from 'firebase/auth'
 
-import { getAuth } from 'firebase/auth';
-import { loadFirebaseConfig } from '@repo/shared/config';
-import { initFirebase } from '@repo/shared/firebase';
+let _app: FirebaseApp | null = null
+let _db: Firestore | null = null
+let _auth: Auth | null = null
 
-const config = loadFirebaseConfig('NEXT_PUBLIC_');
+function getApp(): FirebaseApp {
+  if (!_app) {
+    const config = {
+      apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY!,
+      authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN!,
+      projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID!,
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET!,
+      messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID!,
+      appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
+    }
+    if (!config.apiKey || !config.projectId) {
+      throw new Error('Missing Firebase environment variables. Set NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_PROJECT_ID in .env.local')
+    }
+    _app = getApps().length > 0 ? getApps()[0] : initializeApp(config)
+  }
+  return _app
+}
 
-const useEmulator = process.env.NEXT_PUBLIC_FIREBASE_USE_EMULATOR === '1';
+export function getDb(): Firestore {
+  if (!_db) {
+    _db = getFirestore(getApp())
+  }
+  return _db
+}
 
-const { app, db, storage } = initFirebase({
-  config,
-  useEmulator,
-  emulatorHost: 'localhost',
-});
-
-export { app, db, storage };
-export const auth = getAuth(app);
+export function getFirebaseAuth(): Auth {
+  if (!_auth) _auth = getAuth(getApp())
+  return _auth
+}

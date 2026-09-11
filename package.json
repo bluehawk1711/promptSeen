@@ -1,5 +1,5 @@
 {
-  "name": "monorepo",
+  "name": "promptseen",
   "private": true,
   "scripts": {
     "dev:mobile": "pnpm --filter mobile start",
@@ -7,9 +7,7 @@
     "build:web": "pnpm --filter web build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint",
-    "test": "pnpm -r run test",
-    "firebase:emulators": "pnpm --filter mobile run emulators",
-    "firebase:deploy": "pnpm --filter mobile run deploy"
+    "test": "pnpm -r run test"
   },
   "engines": {
     "node": ">=18"

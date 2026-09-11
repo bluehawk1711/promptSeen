@@ -7,6 +7,8 @@ import {
   Dimensions,
   Image,
   StatusBar,
+  Linking,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -395,7 +397,16 @@ function RateSlide({
         </Animated.View>
 
         <Animated.View style={contentAnimatedStyle}>
-          <TouchableOpacity style={styles.rateButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            style={styles.rateButton}
+            activeOpacity={0.8}
+            onPress={() => {
+              const url = Platform.OS === 'ios'
+                ? 'itms-apps://itunes.apple.com/app/id6745154692?action=write-review'
+                : 'market://details?id=com.promptgallery.app';
+              Linking.openURL(url).catch(() => {});
+            }}
+          >
             <Star size={16} color="#fff" fill="#fff" />
             <Text style={styles.rateButtonText}>Rate Us Now</Text>
           </TouchableOpacity>

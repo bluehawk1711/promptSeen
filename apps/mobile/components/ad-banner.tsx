@@ -1,9 +1,10 @@
 import { memo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/theme/colors';
+import { trackEvent, trackStat } from '@/lib/analytics';
 
 interface AdBannerProps {
   style?: object;
@@ -34,9 +35,13 @@ export const AdBanner = memo(function AdBanner({ style }: AdBannerProps) {
   return (
     <View style={[styles.container, style]}>
       <BannerAd
-        unitId={TestIds.BANNER}
+        unitId={process.env.EXPO_PUBLIC_ADMOB_BANNER_AD_UNIT_ID ?? ''}
         size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
         onAdFailedToLoad={() => setAdFailed(true)}
+        onAdLoaded={() => {
+          trackEvent('ad_impression');
+          trackStat('adImpressions');
+        }}
       />
     </View>
   );

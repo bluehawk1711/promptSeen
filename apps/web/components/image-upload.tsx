@@ -191,7 +191,7 @@ export function ImageUpload({
       {/* Preview / Drop Zone */}
       {preview ? (
         <div className="relative group">
-          <div className="relative aspect-[4/5] w-full max-w-[280px] overflow-hidden rounded-xl border">
+          <div className="relative aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-xl border">
             <Image
               src={preview}
               alt="Prompt image"
@@ -253,7 +253,7 @@ export function ImageUpload({
           onClick={() => !disabled && fileInputRef.current?.click()}
           className={`
             relative flex flex-col items-center justify-center gap-3
-            w-full max-w-[280px] aspect-[4/5] rounded-xl border-2 border-dashed
+            w-full max-w-[200px] aspect-[4/5] rounded-xl border-2 border-dashed
             cursor-pointer transition-all duration-200
             ${isDragOver
               ? "border-primary bg-primary/5 scale-[1.02]"

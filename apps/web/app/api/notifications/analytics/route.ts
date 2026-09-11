@@ -11,7 +11,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/firebase";
+import { getDb } from "@/lib/firebase";
 import {
   collection,
   getDocs,
@@ -39,13 +39,13 @@ export async function GET(request: NextRequest) {
     let notifQuery;
     if (source) {
       notifQuery = query(
-        collection(db, "push_notifications"),
+        collection(getDb(), "push_notifications"),
         where("source", "==", source),
         orderBy("createdAt", "desc")
       );
     } else {
       notifQuery = query(
-        collection(db, "push_notifications"),
+        collection(getDb(), "push_notifications"),
         orderBy("createdAt", "desc")
       );
     }
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
     );
 
     // Platform breakdown from FCM tokens
-    const tokensSnap = await getDocs(collection(db, "fcm_tokens"));
+    const tokensSnap = await getDocs(collection(getDb(), "fcm_tokens"));
     const platformMap = new Map<string, number>();
     for (const tokenDoc of tokensSnap.docs) {
       const platform = (tokenDoc.data().platform as string) ?? "unknown";

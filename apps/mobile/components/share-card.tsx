@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
 import * as Haptics from 'expo-haptics';
 import { shareAsync } from 'expo-sharing';
+import { Heart, Copy, Sparkles } from 'lucide-react-native';
 import type { Prompt } from '@repo/shared/types';
 
 interface ShareCardProps {
@@ -96,19 +97,28 @@ export const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(
               )}
 
               <View style={styles.statsRow}>
-                <Text style={styles.statText}>
-                  ❤️ {prompt.likesCount.toLocaleString()}
-                </Text>
-                <Text style={styles.statText}>
-                  📋 {prompt.copiesCount.toLocaleString()}
-                </Text>
+                <View style={styles.statItem}>
+                  <Heart size={11} color="#B8956A" fill="#B8956A" />
+                  <Text style={styles.statText}>
+                    {prompt.likesCount.toLocaleString()}
+                  </Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Copy size={11} color="#B8956A" />
+                  <Text style={styles.statText}>
+                    {prompt.copiesCount.toLocaleString()}
+                  </Text>
+                </View>
               </View>
             </View>
 
             {/* Watermark */}
-            <Text style={styles.watermark}>
-              ✨ Get more prompts — Download PromptSeen
-            </Text>
+            <View style={styles.watermarkRow}>
+              <Sparkles size={10} color="rgba(184,149,106,0.6)" />
+              <Text style={styles.watermark}>
+                Get more prompts — Download PromptSeen
+              </Text>
+            </View>
           </View>
         </View>
       </View>
@@ -215,14 +225,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   statText: {
     fontSize: 11,
     color: '#B8956A',
   },
+  watermarkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
   watermark: {
     fontSize: 11,
     color: 'rgba(184,149,106,0.6)',
-    textAlign: 'center',
-    marginTop: 8,
   },
 });

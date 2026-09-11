@@ -22,6 +22,8 @@ interface FavoritesState {
   unlockPremium: (promptId: string) => void;
   /** Check if a premium prompt is unlocked. */
   isUnlocked: (promptId: string) => boolean;
+  /** Clear all favorites. */
+  clearFavorites: () => void;
 }
 
 export const useFavoritesStore = create<FavoritesState>()(
@@ -50,6 +52,8 @@ export const useFavoritesStore = create<FavoritesState>()(
         })),
 
       isUnlocked: (promptId) => get().unlockedPremiumIds.includes(promptId),
+
+      clearFavorites: () => set({ likedIds: [] }),
     }),
     {
       name: 'promptgallery-favorites',

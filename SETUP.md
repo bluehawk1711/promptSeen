@@ -21,6 +21,17 @@
 13. [GitHub Actions CI/CD](#github-actions-cicd)
 14. [Deployment](#deployment)
 15. [Troubleshooting](#troubleshooting)
+16. [Test Credentials](#test-credentials)
+
+---
+
+## Test Credentials
+
+| Service | Email | Password | Notes |
+|---------|-------|----------|-------|
+| **Admin Panel** | `prompt.admin@gmail.com` | `1234567890` | Firebase Auth + Firestore `users/{uid}.isAdmin = true` |
+
+**Setup required:** After creating the Firebase Auth user, manually create the `users/{uid}` document in Firestore with `isAdmin: true` (see [Firebase Console Setup](#firebase-console-setup)).
 
 ---
 
@@ -110,6 +121,31 @@ This creates:
 - 3 sample submissions
 - Sample daily stats
 - Sample FCM tokens and push notifications
+
+---
+
+## Firebase Console Setup
+
+### Create Admin User
+
+1. **Firebase Console** → **Authentication** → **Users** → **Add user**
+   - Email: `prompt.admin@gmail.com`
+   - Password: `1234567890`
+   - Copy the **UID**
+
+2. **Firestore Database** → **Data** → Create collection `users`
+   - Document ID = the UID from step 1
+   - Fields:
+     - `email` (string): `prompt.admin@gmail.com`
+     - `displayName` (string): `Admin`
+     - `isAdmin` (boolean): `true`
+     - `createdAt` (number): `1757500000000`
+
+### Enable Services
+
+1. **Authentication** → Sign-in method → Enable **Email/Password**
+2. **Firestore Database** → Create database → Start in **test mode**
+3. (Optional) **Storage** → Not needed (using Cloudinary for uploads)
 
 ---
 

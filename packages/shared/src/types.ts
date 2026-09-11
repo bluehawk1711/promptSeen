@@ -198,7 +198,14 @@ export type AnalyticsEventType =
   | 'ad_reward_request'
   | 'ad_reward_complete'
   | 'app_open'
-  | 'app_background';
+  | 'app_background'
+  | 'screen_view'
+  | 'search'
+  | 'category_filter'
+  | 'ad_impression'
+  | 'premium_unlock'
+  | 'notification_received'
+  | 'notification_opened';
 
 export interface AnalyticsEvent {
   id: string;

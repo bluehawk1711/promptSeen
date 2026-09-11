@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Moon,
@@ -15,6 +15,7 @@ import {
   Clock,
   CheckCircle,
   XCircle,
+  Check,
 } from 'lucide-react-native';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -41,7 +42,7 @@ export default function ProfileScreen() {
 
   const { mode: themeMode, setMode: setThemeMode } = useThemeStore();
   const { resetOnboarding } = useOnboardingStore();
-  const { likedIds } = useFavoritesStore();
+  const { likedIds, clearFavorites } = useFavoritesStore();
   const { collections } = useCollectionsStore();
   const { mySubmissions, getMyStats } = useSubmissionsStore();
 
@@ -118,7 +119,7 @@ export default function ProfileScreen() {
               </Text>
               {isActive && (
                 <View style={[styles.checkmark, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.checkmarkText}>✓</Text>
+                  <Check size={12} color="#fff" strokeWidth={3} />
                 </View>
               )}
             </TouchableOpacity>
@@ -139,12 +140,26 @@ export default function ProfileScreen() {
           <ChevronRight size={16} color={colors.mutedForeground} />
         </TouchableOpacity>
         <View style={[styles.divider, { backgroundColor: colors.border }]} />
-        <View style={styles.option}>
+        <TouchableOpacity
+          style={styles.option}
+          onPress={() => {
+            if (likedIds.length === 0) return;
+            Alert.alert(
+              'Clear Favorites',
+              `Remove all ${likedIds.length} favorites?`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Clear', style: 'destructive', onPress: clearFavorites },
+              ]
+            );
+          }}
+        >
           <Trash2 size={20} color={colors.red} />
           <Text style={[styles.optionText, { color: colors.text }]}>
             Favorites: {likedIds.length} saved
           </Text>
-        </View>
+          <ChevronRight size={16} color={colors.mutedForeground} />
+        </TouchableOpacity>
       </View>
 
       {/* About */}
@@ -194,7 +209,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkmarkText: { color: '#fff', fontSize: 12, fontWeight: '700' },
   divider: { height: StyleSheet.hairlineWidth, marginLeft: 46 },
   version: { fontSize: 12, marginTop: 1 },
   statsGrid: {
