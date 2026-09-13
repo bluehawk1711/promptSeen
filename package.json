@@ -1,7 +1,6 @@
 {
   "name": "ts-prompt",
   "private": true,
-  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev:mobile": "pnpm --filter mobile start",
     "dev:web": "pnpm --filter web dev",
@@ -13,9 +12,6 @@
     "test": "pnpm -r run test",
     "seed": "pnpm --filter web seed",
     "backup": "pnpm --filter web backup"
-  },
-  "devDependencies": {
-    "next": "16.2.6"
   },
   "engines": {
     "node": ">=18"
