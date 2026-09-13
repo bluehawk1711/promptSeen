@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Image from 'next/image'
 import {
   Plus,
@@ -54,7 +54,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { MultiSelect, MultiSelectTrigger, MultiSelectValue, MultiSelectContent, MultiSelectList, MultiSelectItem } from '@/components/motion/multi-select'
-import { ImageUpload } from '@/components/image-upload'
+import { ImageUpload, type ImageUploadHandle } from '@/components/image-upload'
 import { notifyNewPrompt } from '@/lib/notifications'
 import { getDb } from '@/lib/firebase'
 import {
@@ -99,6 +99,8 @@ export default function PromptsPage() {
   const [formIsActive, setFormIsActive] = useState(true)
   const [formIsPremium, setFormIsPremium] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const imageUploadRef = useRef<ImageUploadHandle>(null)
 
   const openCreate = () => {
     setEditingPrompt(null)
@@ -129,40 +131,55 @@ export default function PromptsPage() {
   }
 
   const handleSave = async () => {
-    const primaryCategoryId = formCategoryIds[0] ?? ''
-    const data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'> = {
-      text: formText,
-      imageUrl: formImageUrl,
-      cloudinaryPublicId: formCloudinaryId,
-      categoryId: primaryCategoryId,
-      order: Number(formOrder),
-      likesCount: editingPrompt?.likesCount ?? 0,
-      copiesCount: editingPrompt?.copiesCount ?? 0,
-      shareCount: editingPrompt?.shareCount ?? 0,
-      tags: formTags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
-      isActive: formIsActive,
-      isPremium: formIsPremium,
-    }
-
-    if (editingPrompt) {
-      await updatePrompt.mutateAsync({ id: editingPrompt.id, data })
-      toast.success('Prompt updated', 'The prompt has been saved.')
-    } else {
-      const newId = await createPrompt.mutateAsync(data)
-      toast.success('Prompt created', 'The new prompt has been added.')
-      try {
-        const settingsRes = await fetch('/api/notifications/settings')
-        const settings = settingsRes.ok ? await settingsRes.json() : null
-        const autoNotify = settings?.autoNotifyNewPrompt ?? true
-        if (autoNotify) {
-          const categoryName = categories.find((c) => c.id === primaryCategoryId)?.name ?? 'New'
-          await notifyNewPrompt(getDb(), newId, formText, categoryName, formImageUrl, 'admin')
+    setSaving(true)
+    try {
+      // Step 1: Upload image to Cloudinary if there's a pending upload
+      if (imageUploadRef.current?.hasPendingUpload()) {
+        const uploaded = await imageUploadRef.current.upload()
+        if (!uploaded) {
+          setSaving(false)
+          return // Upload failed, error shown in ImageUpload
         }
-      } catch (err) {
-        console.warn('Failed to send auto-notification:', err)
       }
+
+      // Step 2: Save prompt to Firestore
+      const primaryCategoryId = formCategoryIds[0] ?? ''
+      const data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'> = {
+        text: formText,
+        imageUrl: formImageUrl,
+        cloudinaryPublicId: formCloudinaryId,
+        categoryId: primaryCategoryId,
+        order: Number(formOrder),
+        likesCount: editingPrompt?.likesCount ?? 0,
+        copiesCount: editingPrompt?.copiesCount ?? 0,
+        shareCount: editingPrompt?.shareCount ?? 0,
+        tags: formTags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
+        isActive: formIsActive,
+        isPremium: formIsPremium,
+      }
+
+      if (editingPrompt) {
+        await updatePrompt.mutateAsync({ id: editingPrompt.id, data })
+        toast.success('Prompt updated', 'The prompt has been saved.')
+      } else {
+        const newId = await createPrompt.mutateAsync(data)
+        toast.success('Prompt created', 'The new prompt has been added.')
+        try {
+          const settingsRes = await fetch('/api/notifications/settings')
+          const settings = settingsRes.ok ? await settingsRes.json() : null
+          const autoNotify = settings?.autoNotifyNewPrompt ?? true
+          if (autoNotify) {
+            const categoryName = categories.find((c) => c.id === primaryCategoryId)?.name ?? 'New'
+            await notifyNewPrompt(getDb(), newId, formText, categoryName, formImageUrl, 'admin')
+          }
+        } catch (err) {
+          console.warn('Failed to send auto-notification:', err)
+        }
+      }
+      setSheetOpen(false)
+    } finally {
+      setSaving(false)
     }
-    setSheetOpen(false)
   }
 
   const handleDelete = async (id: string) => {
@@ -329,9 +346,10 @@ export default function PromptsPage() {
             <div className="flex flex-col gap-2">
               <Label>Image *</Label>
               <ImageUpload
+                ref={imageUploadRef}
                 currentImageUrl={editingPrompt?.imageUrl}
                 currentPublicId={editingPrompt?.cloudinaryPublicId}
-                onUploadComplete={(data) => { setFormImageUrl(data.imageUrl); setFormCloudinaryId(data.publicId); setUploadError(null) }}
+                onUploadComplete={(data) => { setFormImageUrl(data.imageUrl); setFormCloudinaryId(data.publicId) }}
                 onRemove={() => { setFormImageUrl(''); setFormCloudinaryId('') }}
                 onError={setUploadError}
                 cloudName={CLOUD_NAME}
@@ -382,10 +400,10 @@ export default function PromptsPage() {
           </div>
 
           <SheetFooter>
-            <Button variant="outline" onClick={() => setSheetOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={createPrompt.isPending || updatePrompt.isPending || !formText || !formImageUrl}>
-              {(createPrompt.isPending || updatePrompt.isPending) && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {editingPrompt ? 'Save Changes' : 'Create Prompt'}
+            <Button variant="outline" onClick={() => setSheetOpen(false)} disabled={saving}>Cancel</Button>
+            <Button onClick={handleSave} disabled={saving || !formText || !formImageUrl}>
+              {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+              {saving ? 'Uploading...' : editingPrompt ? 'Save Changes' : 'Create Prompt'}
             </Button>
           </SheetFooter>
         </SheetContent>
