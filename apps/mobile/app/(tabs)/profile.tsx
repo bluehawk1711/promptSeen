@@ -170,7 +170,7 @@ export default function ProfileScreen() {
         <View style={styles.option}>
           <Info size={20} color={colors.mutedForeground} />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.optionText, { color: colors.text }]}>PromptSeen</Text>
+            <Text style={[styles.optionText, { color: colors.text }]}>TS Prompt</Text>
             <Text style={[styles.version, { color: colors.mutedForeground }]}>v1.0.0</Text>
           </View>
         </View>

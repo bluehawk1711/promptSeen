@@ -154,7 +154,7 @@ export default function HomeScreen() {
           </View>
           <View>
             <Text style={[styles.appName, { color: colors.text }]}>
-              PromptSeen
+              TS Prompt
             </Text>
             <Text style={[styles.appTagline, { color: colors.mutedForeground }]}>
               {prompts.length} prompts curated for you

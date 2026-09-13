@@ -57,7 +57,6 @@ import { MultiSelect, MultiSelectTrigger, MultiSelectValue, MultiSelectContent, 
 import { ImageUpload } from '@/components/image-upload'
 import { notifyNewPrompt } from '@/lib/notifications'
 import { getDb } from '@/lib/firebase'
-import { doc, getDoc } from 'firebase/firestore'
 import {
   useAdminPrompts,
   useCreatePrompt,
@@ -67,6 +66,13 @@ import {
 } from '@/lib/admin-queries'
 import { useToast } from '@/lib/use-toast'
 import type { Prompt } from '@repo/shared/types'
+import {
+  PageTransition,
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+  AnimatedTableRow,
+} from '@/components/motion/motion-components'
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? ''
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? 'ml_default'
@@ -145,8 +151,9 @@ export default function PromptsPage() {
       const newId = await createPrompt.mutateAsync(data)
       toast.success('Prompt created', 'The new prompt has been added.')
       try {
-        const settingsSnap = await getDoc(doc(getDb(), 'settings', 'notifications'))
-        const autoNotify = settingsSnap.exists() ? (settingsSnap.data().autoNotifyNewPrompt ?? true) : true
+        const settingsRes = await fetch('/api/notifications/settings')
+        const settings = settingsRes.ok ? await settingsRes.json() : null
+        const autoNotify = settings?.autoNotifyNewPrompt ?? true
         if (autoNotify) {
           const categoryName = categories.find((c) => c.id === primaryCategoryId)?.name ?? 'New'
           await notifyNewPrompt(getDb(), newId, formText, categoryName, formImageUrl, 'admin')
@@ -199,9 +206,9 @@ export default function PromptsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <PageTransition className="flex flex-col gap-6">
       {/* Header */}
-      <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+      <FadeIn className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-xl font-medium md:text-2xl">Prompts</h1>
           <p className="text-sm text-muted-foreground">
@@ -212,99 +219,101 @@ export default function PromptsPage() {
           <Plus size={16} className="mr-2" />
           Add Prompt
         </Button>
-      </div>
+      </FadeIn>
 
       {/* Search */}
-      <div className="relative max-w-sm">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search prompts..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 h-11"
-        />
-      </div>
+      <FadeIn delay={0.05}>
+        <div className="relative max-w-sm">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search prompts..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-11"
+          />
+        </div>
+      </FadeIn>
 
       {/* Table */}
-      <Card className="border-0 shadow-sm overflow-hidden">
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>Prompt</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead className="text-center">Engagement</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPrompts.map((prompt, i) => (
-                <TableRow key={prompt.id} className="group">
-                  <TableCell className="text-muted-foreground">{i + 1}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {prompt.imageUrl && (
-                        <div className="relative size-10 shrink-0 overflow-hidden rounded-lg">
-                          <Image src={prompt.imageUrl} alt="" fill className="object-cover" sizes="40px" />
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate max-w-[280px]">{prompt.text}</p>
-                        <div className="flex gap-1 mt-1">
-                          {prompt.tags.slice(0, 3).map((tag) => (
-                            <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
-                          ))}
+      <FadeIn delay={0.1}>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Prompt</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-center">Engagement</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPrompts.map((prompt, i) => (
+                  <AnimatedTableRow key={prompt.id} index={i} className="group">
+                    <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        {prompt.imageUrl && (
+                          <div className="relative size-10 shrink-0 overflow-hidden rounded-lg">
+                            <Image src={prompt.imageUrl} alt="" fill className="object-cover" sizes="40px" />
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate max-w-[280px]">{prompt.text}</p>
+                          <div className="flex gap-1 mt-1">
+                            {prompt.tags.slice(0, 3).map((tag) => (
+                              <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{getCategoryName(prompt.categoryId)}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Heart size={12} /> {prompt.likesCount}</span>
-                      <span className="flex items-center gap-1"><Copy size={12} /> {prompt.copiesCount}</span>
-                      <span className="flex items-center gap-1"><Share2 size={12} /> {prompt.shareCount ?? 0}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center justify-center gap-1">
-                      {prompt.isActive ? (
-                        <Eye size={14} className="text-green-500" />
-                      ) : (
-                        <EyeOff size={14} className="text-muted-foreground" />
-                      )}
-                      {prompt.isPremium && (
-                        <Star size={14} className="text-yellow-500 fill-yellow-500" />
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{getCategoryName(prompt.categoryId)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1"><Heart size={12} /> {prompt.likesCount}</span>
+                        <span className="flex items-center gap-1"><Copy size={12} /> {prompt.copiesCount}</span>
+                        <span className="flex items-center gap-1"><Share2 size={12} /> {prompt.shareCount ?? 0}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        {prompt.isActive ? (
+                          <Eye size={14} className="text-green-500" />
+                        ) : (
+                          <EyeOff size={14} className="text-muted-foreground" />
+                        )}
+                        {prompt.isPremium && (
+                          <Star size={14} className="text-yellow-500 fill-yellow-500" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" />}>
                           <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEdit(prompt)}>
-                          <Pencil size={14} className="mr-2" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteConfirm(prompt.id)} className="text-destructive">
-                          <Trash2 size={14} className="mr-2" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEdit(prompt)}>
+                            <Pencil size={14} className="mr-2" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm(prompt.id)} className="text-destructive">
+                            <Trash2 size={14} className="mr-2" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </AnimatedTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </FadeIn>
 
       {/* Create/Edit Sheet */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -401,6 +410,6 @@ export default function PromptsPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageTransition>
   )
 }

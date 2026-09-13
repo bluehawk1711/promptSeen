@@ -1,5 +1,5 @@
 /**
- * PromptSeen — Global color theme.
+ * TS Prompt — Global color theme.
  *
  * Warm orange/dark palette inspired by the onboarding design.
  * Both light and dark modes use orange as the primary accent.

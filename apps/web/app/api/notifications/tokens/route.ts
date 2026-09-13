@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/firebase";
-import {
-  collection,
-  getDocs,
-  query,
-  orderBy,
-  limit,
-  where,
-  type Firestore,
-} from "firebase/firestore";
-import type { FCMToken, PushNotification } from "@repo/shared/types";
+import type { PushNotification } from "@repo/shared/types";
 
 /**
  * GET /api/notifications/tokens
@@ -18,36 +8,36 @@ import type { FCMToken, PushNotification } from "@repo/shared/types";
  *   activeTokens: number
  *   recentNotifications: PushNotification[]
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
+    const { getAdminDb } = await import("@/lib/firebase-admin");
+    const db = getAdminDb();
+
     // Get active token count
-    const tokensQuery = query(
-      collection(getDb(), "fcm_tokens"),
-      where("isActive", "==", true)
-    );
-    const tokensSnap = await getDocs(tokensQuery);
+    const tokensSnap = await db
+      .collection("fcm_tokens")
+      .where("isActive", "==", true)
+      .get();
     const activeTokens = tokensSnap.size;
 
     // Get recent notifications
-    const notifQuery = query(
-      collection(getDb(), "push_notifications"),
-      orderBy("createdAt", "desc"),
-      limit(20)
-    );
-    const notifSnap = await getDocs(notifQuery);
+    const notifSnap = await db
+      .collection("push_notifications")
+      .orderBy("createdAt", "desc")
+      .limit(20)
+      .get();
     const recentNotifications = notifSnap.docs.map(
-      (d) => ({ id: d.id, ...d.data() } as PushNotification)
+      (d) => ({ id: d.id, ...d.data() }) as PushNotification,
     );
 
     return NextResponse.json({
       activeTokens,
       recentNotifications,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch notification data";
     console.error("[api/notifications/tokens]", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to fetch notification data" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

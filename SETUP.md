@@ -1,6 +1,6 @@
-# PromptSeen — Setup & Documentation
+# TS Prompt — Setup & Documentation
 
-> **PromptSeen** is a premium AI prompt gallery with a React Native Expo mobile app and a Next.js admin panel, sharing code through a Turborepo monorepo.
+> **TS Prompt** is a premium AI prompt gallery with a React Native Expo mobile app and a Next.js admin panel, sharing code through a Turborepo monorepo.
 
 ---
 
@@ -116,7 +116,7 @@ pnpm emulators:seed
 This creates:
 - 6 categories (Marketing, Creative Writing, Coding, Business, Social Media, Education)
 - 20 sample prompts with images
-- 1 admin user (`admin@promptseen.com`)
+- 1 admin user (`admin@tsprompt.com`)
 - 2 sample collections
 - 3 sample submissions
 - Sample daily stats
@@ -724,6 +724,56 @@ cd apps/mobile && expo prebuild --platform ios && cd ios && xcodebuild archive
 - **Mobile**: BNA UI (BottomSheet, Toast, Skeleton, Tabs, Switch, etc.)
 - **Web**: shadcn/ui (Button, Card, Dialog, Table, Badge, etc.)
 - **Icons**: Lucide React Native (mobile) + Lucide React (web)
+
+---
+
+## Coding Rules
+
+These rules must be followed by all contributors and AI agents working on this codebase.
+
+### Type Safety
+
+1. **No `any` types** — Ever. Use proper TypeScript types in all places. If the type is unknown, use `unknown` and narrow with type guards (`instanceof Error`, etc.).
+2. **No `@ts-ignore` or `@ts-expect-error`** — Fix the underlying issue instead.
+3. **Shared types** — All data types (Prompt, Category, User, etc.) live in `@repo/shared/types`. Import from there in both apps.
+4. **No `as` type assertions** unless absolutely necessary and documented with a comment explaining why.
+5. **Return types** — All exported functions must have explicit return types.
+
+### File Length
+
+1. **Maximum 600 lines per file** — If a file exceeds this, split it into focused modules.
+2. **One component per file** — Each component gets its own file.
+3. **Separate concerns** — Data fetching, business logic, and UI should be in separate files.
+
+### Component Guidelines
+
+1. **Use shadcn components** (web) and **BNA UI** (mobile) for all UI primitives. Don't build custom buttons, inputs, cards, etc.
+2. **No bare HTML** — Always wrap in styled components. `<button>` → `<Button>`, `<table>` → `<Table>`, etc.
+3. **Base UI API** — This project uses `@base-ui/react`, NOT Radix. Key differences:
+   - `render` prop instead of `asChild`
+   - `delay` instead of `delayDuration` (tooltips)
+4. **No nested buttons** — `DropdownMenuTrigger` should use `render={<Button />}` pattern, not wrap a Button child.
+5. **cursor-pointer** — All interactive elements must have `cursor-pointer` class.
+
+### Code Quality
+
+1. **No duplicate code** — Extract shared logic to the `@repo/shared` package.
+2. **Error handling** — Always catch with `error: unknown` and narrow: `error instanceof Error ? error.message : 'Fallback message'`.
+3. **Named exports** — Prefer named exports over default exports for components.
+4. **Barrel exports** — Use index files to re-export from module directories.
+
+### Firebase Rules
+
+1. **Server-side API routes** — Use `firebase-admin` (`getAdminDb()` from `@/lib/firebase-admin`) to bypass Firestore security rules.
+2. **Client-side code** — Use the regular Firebase SDK (`getDb()` from `@/lib/firebase`).
+3. **Never mix** — API routes should NEVER import from `@/lib/firebase`. Only use `@/lib/firebase-admin`.
+
+### Styling
+
+1. **Tailwind CSS 4** — Use utility classes, not custom CSS (except for theme variables in `globals.css`).
+2. **Theme tokens** — Use CSS custom properties (`var(--primary)`, `var(--muted-foreground)`) for colors.
+3. **Dark mode** — Use `dark:` prefix or theme-aware tokens. Never hardcode light/dark colors.
+4. **Motion** — Use `motion/react` for animations. Use `Variants` type for complex variant animations. Cast bezier curves as `[number, number, number, number]` tuples.
 
 ---
 

@@ -1,4 +1,4 @@
-# PromptSeen — Features & Functionalities
+# TS Prompt — Features & Functionalities
 
 ## Mobile App (React Native / Expo)
 

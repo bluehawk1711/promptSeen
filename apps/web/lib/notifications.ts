@@ -150,7 +150,7 @@ export async function sendPushNotification(
       // Count successful sends
       if (result.data) {
         deliveredCount += result.data.filter(
-          (r: any) => r.status === 'ok'
+          (r: { status: string }) => r.status === 'ok'
         ).length;
       }
     } catch (error) {

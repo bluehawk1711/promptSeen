@@ -16,6 +16,13 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAdminCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/lib/admin-queries'
 import { useToast } from '@/lib/use-toast'
 import type { Category } from '@repo/shared/types'
+import {
+  PageTransition,
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+  AnimatedTableRow,
+} from '@/components/motion/motion-components'
 
 export default function CategoriesPage() {
   const { data: categories = [], isLoading: loading } = useAdminCategories()
@@ -82,8 +89,8 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+    <PageTransition className="flex flex-col gap-6">
+      <FadeIn className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-xl font-medium md:text-2xl">Categories</h1>
           <p className="text-sm text-muted-foreground">{categories.length} categories total</p>
@@ -91,63 +98,63 @@ export default function CategoriesPage() {
         <Button onClick={openCreate} className="shrink-0">
           <Plus size={16} className="mr-2" /> Add Category
         </Button>
-      </div>
+      </FadeIn>
 
-      <Card className="border-0 shadow-sm overflow-hidden">
-        <CardContent className="p-0 overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">#</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Slug</TableHead>
-                <TableHead className="text-center">Prompts</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((cat, i) => (
-                <TableRow key={cat.id} className="group">
-                  <TableCell className="text-muted-foreground">{i + 1}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
-                        <FolderOpen size={14} className="text-primary" />
-                      </div>
-                      <span className="font-medium">{cat.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell><Badge variant="secondary">{cat.slug}</Badge></TableCell>
-                  <TableCell className="text-center">{cat.promptCount}</TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant={cat.isActive ? 'default' : 'secondary'}>
-                      {cat.isActive ? 'Active' : 'Hidden'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal size={16} />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => openEdit(cat)}>
-                          <Pencil size={14} className="mr-2" /> Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDeleteConfirm(cat.id)} className="text-destructive">
-                          <Trash2 size={14} className="mr-2" /> Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+      <FadeIn delay={0.1}>
+        <Card className="border-0 shadow-sm overflow-hidden">
+          <CardContent className="p-0 overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">#</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead className="text-center">Prompts</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {categories.map((cat, i) => (
+                  <AnimatedTableRow key={cat.id} index={i} className="group">
+                    <TableCell className="text-muted-foreground">{i + 1}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex size-8 items-center justify-center rounded-lg bg-primary/10">
+                          <FolderOpen size={14} className="text-primary" />
+                        </div>
+                        <span className="font-medium">{cat.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell><Badge variant="secondary">{cat.slug}</Badge></TableCell>
+                    <TableCell className="text-center">{cat.promptCount}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant={cat.isActive ? 'default' : 'secondary'}>
+                        {cat.isActive ? 'Active' : 'Hidden'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" />}>
+                          <MoreHorizontal size={16} />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEdit(cat)}>
+                            <Pencil size={14} className="mr-2" /> Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setDeleteConfirm(cat.id)} className="text-destructive">
+                            <Trash2 size={14} className="mr-2" /> Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </AnimatedTableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </FadeIn>
 
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent>
@@ -195,6 +202,6 @@ export default function CategoriesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageTransition>
   )
 }

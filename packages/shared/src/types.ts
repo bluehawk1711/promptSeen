@@ -1,5 +1,5 @@
 /**
- * Shared types for the PromptSeen monorepo.
+ * Shared types for the TS Prompt monorepo.
  *
  * Both the React Native mobile app and the Next.js admin panel consume these.
  */

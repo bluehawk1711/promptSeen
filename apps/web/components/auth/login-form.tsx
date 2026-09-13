@@ -21,8 +21,9 @@ export function LoginForm() {
     setLoading(true)
     try {
       await login(email, password)
-    } catch (err: any) {
-      setError(err.message || 'Invalid email or password')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password';
+      setError(message)
     } finally {
       setLoading(false)
     }
@@ -39,7 +40,7 @@ export function LoginForm() {
           </div>
           <div className="text-center space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-            <p className="text-sm text-muted-foreground">Sign in to the PromptSeen admin panel</p>
+            <p className="text-sm text-muted-foreground">Sign in to the TS Prompt admin panel</p>
           </div>
         </div>
 
@@ -49,7 +50,7 @@ export function LoginForm() {
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-semibold">Email address</Label>
               <Input
-                id="email" type="email" placeholder="admin@promptseen.com"
+                id="email" type="email" placeholder="admin@tsprompt.com"
                 value={email} onChange={(e) => setEmail(e.target.value)}
                 required autoFocus autoComplete="email"
                 className="h-11 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/30"
@@ -80,7 +81,7 @@ export function LoginForm() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground/60 mt-8">
-          PromptSeen Admin Panel — Access restricted to authorized administrators
+          TS Prompt Admin Panel — Access restricted to authorized administrators
         </p>
       </div>
     </div>

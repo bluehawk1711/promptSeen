@@ -9,8 +9,8 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'PromptSeen Admin',
-  description: 'Admin panel for managing PromptSeen prompts and categories',
+  title: 'TS Prompt Admin',
+  description: 'Admin panel for managing TS Prompt prompts and categories',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

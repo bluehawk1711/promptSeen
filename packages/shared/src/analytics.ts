@@ -1,5 +1,5 @@
 /**
- * Analytics — lightweight event tracking for PromptSeen.
+ * Analytics — lightweight event tracking for TS Prompt.
  *
  * Events are written to the `analytics_events` collection in Firestore.
  * Daily aggregation runs periodically to produce `daily_stats` documents.

@@ -77,8 +77,8 @@ function NavItem({ item, collapsed }: { item: NavItem; collapsed: boolean }) {
   if (collapsed) {
     return (
       <SidebarMenuItem>
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>{link}</TooltipTrigger>
+        <Tooltip>
+          <TooltipTrigger render={link} />
           <TooltipContent side="right" sideOffset={8}>{item.name}</TooltipContent>
         </Tooltip>
       </SidebarMenuItem>
@@ -94,19 +94,21 @@ function ProfileItem({ collapsed }: { collapsed: boolean }) {
   return (
     <SidebarMenuItem>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              'flex h-9 w-full items-center gap-2.5 rounded-lg text-[13px] font-medium text-muted-foreground transition-all duration-150 hover:bg-muted hover:text-foreground cursor-pointer',
-              collapsed ? 'justify-center px-0' : 'px-2.5',
-            )}
+        <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className={cn(
+                  'flex h-9 w-full items-center gap-2.5 rounded-lg text-[13px] font-medium text-muted-foreground transition-all duration-150 hover:bg-muted hover:text-foreground cursor-pointer',
+                  collapsed ? 'justify-center px-0' : 'px-2.5',
+                )}
+              />
+            }
           >
             <div className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[9px] font-bold text-primary">
               {profile?.email?.charAt(0).toUpperCase() ?? '?'}
             </div>
             {!collapsed && <span className="truncate">{profile?.displayName || 'Account'}</span>}
-          </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent side="top" align="start" className="w-56">
           <div className="px-3 py-2.5">
@@ -127,15 +129,15 @@ function HelpItem({ collapsed }: { collapsed: boolean }) {
   return (
     <SidebarMenuItem>
       {collapsed ? (
-        <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            <DashboardLink
-              href="/admin/help"
-              className="flex h-9 w-full items-center justify-center rounded-lg text-muted-foreground transition-all duration-150 hover:bg-muted hover:text-foreground cursor-pointer"
-            >
-              <HelpCircle className="size-4 shrink-0" />
-            </DashboardLink>
-          </TooltipTrigger>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <DashboardLink
+                href="/admin/help"
+                className="flex h-9 w-full items-center justify-center rounded-lg text-muted-foreground transition-all duration-150 hover:bg-muted hover:text-foreground cursor-pointer"
+              />
+            }
+          />
           <TooltipContent side="right" sideOffset={8}>Help</TooltipContent>
         </Tooltip>
       ) : (
@@ -155,8 +157,7 @@ export function AdminSidebar() {
   const { state, toggleSidebar } = useSidebar()
   const collapsed = state === 'collapsed'
 
-  return (
-    <TooltipProvider delayDuration={0}>
+  return (        <TooltipProvider delay={0}>
       <Sidebar collapsible="icon" className="h-full border-none">
         <SidebarHeader className={cn(
           'flex-row items-center border-b transition-all duration-300',
@@ -166,18 +167,20 @@ export function AdminSidebar() {
             <div className="flex min-w-0 flex-1 items-center gap-2.5">
               <PSLogo className="size-8 shrink-0" />
               <div className="flex flex-col min-w-0">
-                <span className="truncate text-sm font-bold tracking-tight">PromptSeen</span>
+                <span className="truncate text-sm font-bold tracking-tight">TS Prompt</span>
                 <span className="text-[10px] text-muted-foreground font-medium">Admin Panel</span>
               </div>
             </div>
           ) : (
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <DashboardLink href="/admin" className="flex items-center justify-center">
-                  <PSLogo className="size-7 shrink-0 cursor-pointer" />
-                </DashboardLink>
-              </TooltipTrigger>
-              <TooltipContent side="right" sideOffset={8}>PromptSeen Admin</TooltipContent>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <DashboardLink href="/admin" className="flex items-center justify-center">
+                    <PSLogo className="size-7 shrink-0 cursor-pointer" />
+                  </DashboardLink>
+                }
+              />
+              <TooltipContent side="right" sideOffset={8}>TS Prompt Admin</TooltipContent>
             </Tooltip>
           )}
           {!collapsed && (

@@ -86,7 +86,7 @@ const SLIDES: Slide[] = [
   {
     id: 'rate',
     title: 'Enjoying ',
-    highlightWord: 'PromptSeen?',
+    highlightWord: 'TS Prompt?',
     description:
       'Rate us please and support us! Your feedback helps other creators discover the app and helps us keep building great features.',
     buttonText: 'Get Started',

@@ -1,13 +1,17 @@
 {
-  "name": "promptseen",
+  "name": "ts-prompt",
   "private": true,
   "scripts": {
     "dev:mobile": "pnpm --filter mobile start",
     "dev:web": "pnpm --filter web dev",
     "build:web": "pnpm --filter web build",
+    "start:web": "pnpm --filter web start",
+    "build:shared": "pnpm --filter @repo/shared build",
     "typecheck": "pnpm -r run typecheck",
     "lint": "pnpm -r run lint",
-    "test": "pnpm -r run test"
+    "test": "pnpm -r run test",
+    "seed": "pnpm --filter web seed",
+    "backup": "pnpm --filter web backup"
   },
   "engines": {
     "node": ">=18"

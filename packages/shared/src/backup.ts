@@ -102,7 +102,7 @@ export function downloadBackup(backup: BackupData): void {
 
   const a = document.createElement('a');
   a.href = url;
-  a.download = `promptseen-backup-${backup.metadata.timestamp.replace(/[:.]/g, '-')}.json`;
+  a.download = `tsprompt-backup-${backup.metadata.timestamp.replace(/[:.]/g, '-')}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

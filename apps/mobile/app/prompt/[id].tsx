@@ -118,7 +118,7 @@ export default function PromptDetailScreen() {
     } else {
       const { Share } = require('react-native');
       await Share.share({
-        message: `${prompt.text}\n\n— via PromptSeen`,
+        message: `${prompt.text}\n\n— via TS Prompt`,
       });
     }
 
@@ -215,7 +215,7 @@ export default function PromptDetailScreen() {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
               const { Share } = require('react-native');
               Share.share({
-                message: `Check out this prompt on PromptSeen:\n${prompt.text}\n\nhttps://promptseen.app/prompt/${prompt.id}`,
+                message: `Check out this prompt on TS Prompt:\n${prompt.text}\n\nhttps://tsprompt.app/prompt/${prompt.id}`,
               });
             }}
             activeOpacity={0.7}

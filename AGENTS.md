@@ -1,8 +1,8 @@
-# PromptSeen — Architecture & Development Guide
+# TS Prompt — Architecture & Development Guide
 
 ## Overview
 
-PromptSeen is a curated AI prompt gallery app. Users browse prompts with images, like favorites, copy prompts, and unlock premium content via reward ads. The admin panel manages prompts, categories, and users.
+TS Prompt is a curated AI prompt gallery app. Users browse prompts with images, like favorites, copy prompts, and unlock premium content via reward ads. The admin panel manages prompts, categories, and users.
 
 **Stack:** React Native (Expo) + Next.js 16 + Firebase + Cloudinary + pnpm monorepo
 
@@ -73,7 +73,7 @@ import { Colors } from '@repo/shared/theme';
 ### Onboarding Design
 1. **Step 1 — "Find Powerful AI Prompts"**: 4 tilted floating cards with ambient glow
 2. **Step 2 — "Generate Trending"**: Single large card with tags
-3. **Step 3 — "Enjoying PromptSeen?"**: Heart icon, 5 stars, rate button
+3. **Step 3 — "Enjoying TS Prompt?"**: Heart icon, 5 stars, rate button
 
 ### State Management (Zustand)
 - **`theme`** — Persisted theme mode (light/dark/system) → drives `ModeProvider` → `useColorScheme()`

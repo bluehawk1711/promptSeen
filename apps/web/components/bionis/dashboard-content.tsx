@@ -13,38 +13,22 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { DashboardSkeleton } from './skeletons'
-
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.08, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] },
-  }),
-}
-
-const fadeIn = {
-  hidden: { opacity: 0 },
-  visible: (i: number) => ({
-    opacity: 1,
-    transition: { delay: i * 0.1, duration: 0.4 },
-  }),
-}
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: (i: number) => ({
-    opacity: 1, scale: 1,
-    transition: { delay: i * 0.08, duration: 0.4, ease: 'easeOut' },
-  }),
-}
+import {
+  PageTransition,
+  FadeIn,
+  StaggerContainer,
+  StaggerItem,
+  ScaleIn,
+  AnimatedCounter,
+  HoverCard,
+} from '@/components/motion/motion-components'
 
 function ScoreDonut({ value, max = 100 }: { value: number; max?: number }) {
   const pct = Math.round((Math.min(value, max) / Math.max(max, 1)) * 100)
   const data = [{ v: pct }, { v: 100 - pct }]
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3, duration: 0.6, ease: 'easeOut' }}
-      className="relative size-36 shrink-0">
+    <ScaleIn delay={0.3} className="relative size-36 shrink-0">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie data={data} cx="50%" cy="50%" innerRadius="72%" outerRadius="88%"
@@ -57,9 +41,9 @@ function ScoreDonut({ value, max = 100 }: { value: number; max?: number }) {
       </ResponsiveContainer>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Active</span>
-        <span className="text-3xl font-bold tabular-nums tracking-tight">{value}</span>
+        <AnimatedCounter value={value} className="text-3xl font-bold tracking-tight" />
       </div>
-    </motion.div>
+    </ScaleIn>
   )
 }
 
@@ -67,20 +51,28 @@ function StatCard({
   title, value, subtitle, icon: Icon, iconBg, trend, trendUp, accent, index = 0,
 }: {
   title: string; value: string | number; subtitle?: string
-  icon: React.ComponentType<{ className?: string }>; iconBg: string
+  icon: ComponentType<{ className?: string }>; iconBg: string
   trend?: string; trendUp?: boolean; accent?: string; index?: number
 }) {
   return (
-    <motion.div variants={scaleIn} custom={index} initial="hidden" animate="visible">
-      <Card className={cn('relative overflow-hidden border-0 shadow-sm hover:shadow-md transition-all duration-200 group', accent && 'border-l-4')} style={accent ? { borderLeftColor: accent } : undefined}>
+    <StaggerItem>
+      <HoverCard className={cn(
+        'relative overflow-hidden rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm group',
+        accent && 'border-l-4',
+      )} style={accent ? { borderLeftColor: accent } : undefined}>
         <CardContent className="p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[13px] font-medium text-muted-foreground">{title}</p>
-            <motion.div whileHover={{ scale: 1.1, rotate: 5 }} className={cn('flex size-9 items-center justify-center rounded-xl transition-shadow', iconBg)}>
+            <motion.div
+              whileHover={{ scale: 1.15, rotate: 8 }}
+              transition={{ duration: 0.2 }}
+              className={cn('flex size-9 items-center justify-center rounded-xl', iconBg)}
+            >
               <Icon className="size-[18px]" />
             </motion.div>
           </div>
-          <p className="text-3xl font-bold tracking-tight tabular-nums">{value}</p>
+          <AnimatedCounter value={typeof value === 'number' ? value : 0} className="text-3xl font-bold tracking-tight" />
+          {typeof value === 'string' && <p className="text-3xl font-bold tracking-tight tabular-nums">{value}</p>}
           {subtitle && <p className="text-xs text-muted-foreground mt-1.5">{subtitle}</p>}
           {trend && (
             <div className="flex items-center gap-1 mt-2.5">
@@ -90,26 +82,44 @@ function StatCard({
             </div>
           )}
         </CardContent>
-      </Card>
-    </motion.div>
+      </HoverCard>
+    </StaggerItem>
   )
 }
 
-function ChartTooltipContent({ active, payload, label }: any) {
+interface TooltipPayloadItem {
+  color: string
+  dataKey: string
+  value: number
+}
+
+interface ChartTooltipProps {
+  active?: boolean
+  payload?: TooltipPayloadItem[]
+  label?: string
+}
+
+function ChartTooltipContent({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null
   return (
-    <div className="rounded-xl border bg-card px-3.5 py-2.5 shadow-lg">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95, y: 4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      className="rounded-xl border bg-card px-3.5 py-2.5 shadow-lg"
+    >
       <p className="text-xs font-semibold mb-1.5">{label}</p>
-      {payload.map((p: any, i: number) => (
+      {payload.map((p, i) => (
         <div key={i} className="flex items-center gap-2 text-xs">
           <span className="size-2 rounded-full" style={{ backgroundColor: p.color }} />
           <span className="text-muted-foreground capitalize">{p.dataKey}</span>
           <span className="font-semibold ml-auto tabular-nums">{p.value}</span>
         </div>
       ))}
-    </div>
+    </motion.div>
   )
 }
+
+import type { ComponentType } from 'react'
 
 export function DashboardContent() {
   const { data: stats, isLoading: statsLoading } = useAdminStats()
@@ -150,20 +160,18 @@ export function DashboardContent() {
   if (loading) return <DashboardSkeleton />
 
   return (
-    <div className="flex flex-col gap-7">
+    <PageTransition className="flex flex-col gap-7">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-        className="flex items-center justify-between">
+      <FadeIn distance={10} className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{greeting}, Admin</h1>
         <Badge variant="outline" className="gap-1.5 text-xs font-normal px-3 py-1">
           <Calendar className="size-3.5" />
           {new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
         </Badge>
-      </motion.div>
+      </FadeIn>
 
       {/* Hero Overview */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.5 }}
-        className="relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-primary/[0.04] via-background to-background p-6 ring-1 ring-primary/10">
+      <FadeIn delay={0.1} className="relative overflow-hidden rounded-2xl border-0 bg-gradient-to-br from-primary/[0.04] via-background to-background p-6 ring-1 ring-primary/10">
         <div className="flex items-center gap-8">
           <div className="flex-1 space-y-3">
             <h2 className="text-lg font-bold tracking-tight">App Overview</h2>
@@ -176,16 +184,15 @@ export function DashboardContent() {
           </div>
           <ScoreDonut value={stats?.activePrompts ?? 0} max={Math.max(stats?.totalPrompts ?? 1, 1)} />
         </div>
-      </motion.div>
+      </FadeIn>
 
       {/* Key Metrics */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-        className="space-y-4">
-        <div>
+      <div className="space-y-4">
+        <FadeIn delay={0.2}>
           <h2 className="text-lg font-bold tracking-tight">Key Metrics</h2>
           <p className="text-sm text-muted-foreground">Content performance overview</p>
-        </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        </FadeIn>
+        <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard index={0} title="Total Prompts" value={stats?.totalPrompts ?? 0} subtitle={`${stats?.activePrompts ?? 0} active, ${stats?.premiumPrompts ?? 0} premium`}
             icon={FileText} iconBg="bg-primary/10 text-primary" accent="var(--primary)" trend="+12% this week" trendUp />
           <StatCard index={1} title="Categories" value={stats?.totalCategories ?? 0} subtitle="Prompt categories"
@@ -194,20 +201,54 @@ export function DashboardContent() {
             icon={Users} iconBg="bg-blue-500/10 text-blue-600" accent="oklch(0.55 0.20 250)" trend="+5% this week" trendUp />
           <StatCard index={3} title="Submissions" value={stats?.totalSubmissions ?? 0} subtitle={`${stats?.pendingSubmissions ?? 0} pending review`}
             icon={Send} iconBg="bg-purple-500/10 text-purple-600" accent="oklch(0.55 0.20 300)" />
-        </div>
-      </motion.div>
+        </StaggerContainer>
+      </div>
 
       {/* Engagement */}
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <StatCard index={0} title="Total Likes" value={(stats?.totalLikes ?? 0).toLocaleString()} icon={Heart} iconBg="bg-red-500/10 text-red-500" accent="oklch(0.60 0.22 15)" />
-        <StatCard index={1} title="Total Copies" value={(stats?.totalCopies ?? 0).toLocaleString()} icon={Copy} iconBg="bg-blue-500/10 text-blue-500" accent="oklch(0.55 0.20 250)" />
-        <StatCard index={2} title="Total Shares" value={(stats?.totalShares ?? 0).toLocaleString()} icon={Share2} iconBg="bg-emerald-500/10 text-emerald-600" accent="oklch(0.65 0.15 145)" />
-      </motion.div>
+      <div className="space-y-4">
+        <FadeIn delay={0.3}>
+          <h2 className="text-lg font-bold tracking-tight">Engagement</h2>
+        </FadeIn>
+        <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <StaggerItem>
+            <HoverCard className="rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[13px] font-medium text-muted-foreground">Total Likes</p>
+                <div className="flex size-9 items-center justify-center rounded-xl bg-red-500/10 text-red-500">
+                  <Heart className="size-[18px]" />
+                </div>
+              </div>
+              <AnimatedCounter value={stats?.totalLikes ?? 0} className="text-3xl font-bold tracking-tight" />
+            </HoverCard>
+          </StaggerItem>
+          <StaggerItem>
+            <HoverCard className="rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[13px] font-medium text-muted-foreground">Total Copies</p>
+                <div className="flex size-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-500">
+                  <Copy className="size-[18px]" />
+                </div>
+              </div>
+              <AnimatedCounter value={stats?.totalCopies ?? 0} className="text-3xl font-bold tracking-tight" />
+            </HoverCard>
+          </StaggerItem>
+          <StaggerItem>
+            <HoverCard className="rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[13px] font-medium text-muted-foreground">Total Shares</p>
+                <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                  <Share2 className="size-[18px]" />
+                </div>
+              </div>
+              <AnimatedCounter value={stats?.totalShares ?? 0} className="text-3xl font-bold tracking-tight" />
+            </HoverCard>
+          </StaggerItem>
+        </StaggerContainer>
+      </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <motion.div variants={fadeUp} custom={0} initial="hidden" animate="visible">
+        <FadeIn delay={0.4}>
           <Card className="border-0 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               <div className="p-5 pb-0">
@@ -240,9 +281,9 @@ export function DashboardContent() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </FadeIn>
 
-        <motion.div variants={fadeUp} custom={1} initial="hidden" animate="visible">
+        <FadeIn delay={0.5}>
           <Card className="border-0 shadow-sm overflow-hidden">
             <CardContent className="p-0">
               <div className="p-5 pb-0">
@@ -252,7 +293,7 @@ export function DashboardContent() {
                 </div>
               </div>
               <div className="flex items-center gap-8 p-5 pt-3">
-                <div className="size-44 shrink-0">
+                <ScaleIn delay={0.6} className="size-44 shrink-0">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={categoryData} cx="50%" cy="50%" innerRadius="50%" outerRadius="85%"
@@ -263,38 +304,66 @@ export function DashboardContent() {
                       <Tooltip content={<ChartTooltipContent />} />
                     </PieChart>
                   </ResponsiveContainer>
-                </div>
-                <div className="flex flex-1 flex-col gap-3.5">
+                </ScaleIn>
+                <StaggerContainer className="flex flex-1 flex-col gap-3.5">
                   {categoryData.map((cat, i) => (
-                    <motion.div key={cat.name} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + i * 0.08 }}
-                      className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="size-3 rounded-md shrink-0" style={{ backgroundColor: cat.fill }} />
-                        <span className="text-sm font-medium">{cat.name}</span>
+                    <StaggerItem key={cat.name} direction="right" distance={8}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="size-3 rounded-md shrink-0" style={{ backgroundColor: cat.fill }} />
+                          <span className="text-sm font-medium">{cat.name}</span>
+                        </div>
+                        <span className="text-sm tabular-nums text-muted-foreground font-medium">{cat.value}</span>
                       </div>
-                      <span className="text-sm tabular-nums text-muted-foreground font-medium">{cat.value}</span>
-                    </motion.div>
+                    </StaggerItem>
                   ))}
-                </div>
+                </StaggerContainer>
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </FadeIn>
       </div>
 
       {/* Notification Stats */}
       {notifStats && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          className="space-y-4">
-          <h2 className="text-lg font-bold tracking-tight">Notifications</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <StatCard index={0} title="Notifications Sent" value={notifStats.totalSent} icon={Send} iconBg="bg-purple-500/10 text-purple-600" accent="oklch(0.55 0.20 300)" subtitle={`${notifStats.totalNotifs} campaigns`} />
-            <StatCard index={1} title="Delivery Rate" value={`${notifStats.deliveryRate}%`} icon={Eye} iconBg="bg-emerald-500/10 text-emerald-600" accent="oklch(0.65 0.15 145)" subtitle={`${notifStats.totalDelivered} delivered`} />
-            <StatCard index={2} title="Open Rate" value={`${notifStats.openRate}%`} icon={TrendingUp} iconBg="bg-blue-500/10 text-blue-600" accent="oklch(0.55 0.20 250)" subtitle={`${notifStats.activeTokens} active devices`} />
-          </div>
-        </motion.div>
+        <div className="space-y-4">
+          <FadeIn delay={0.55}>
+            <h2 className="text-lg font-bold tracking-tight">Notifications</h2>
+          </FadeIn>
+          <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <StaggerItem>
+              <HoverCard className="rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[13px] font-medium text-muted-foreground">Notifications Sent</p>
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600"><Send className="size-[18px]" /></div>
+                </div>
+                <AnimatedCounter value={notifStats.totalSent} className="text-3xl font-bold tracking-tight" />
+                <p className="text-xs text-muted-foreground mt-1.5">{notifStats.totalNotifs} campaigns</p>
+              </HoverCard>
+            </StaggerItem>
+            <StaggerItem>
+              <HoverCard className="rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[13px] font-medium text-muted-foreground">Delivery Rate</p>
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600"><Eye className="size-[18px]" /></div>
+                </div>
+                <p className="text-3xl font-bold tracking-tight">{notifStats.deliveryRate}%</p>
+                <p className="text-xs text-muted-foreground mt-1.5">{notifStats.totalDelivered} delivered</p>
+              </HoverCard>
+            </StaggerItem>
+            <StaggerItem>
+              <HoverCard className="rounded-xl border-0 bg-card ring-1 ring-foreground/10 shadow-sm p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[13px] font-medium text-muted-foreground">Open Rate</p>
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600"><TrendingUp className="size-[18px]" /></div>
+                </div>
+                <p className="text-3xl font-bold tracking-tight">{notifStats.openRate}%</p>
+                <p className="text-xs text-muted-foreground mt-1.5">{notifStats.activeTokens} active devices</p>
+              </HoverCard>
+            </StaggerItem>
+          </StaggerContainer>
+        </div>
       )}
-    </div>
+    </PageTransition>
   )
 }

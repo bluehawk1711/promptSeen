@@ -1,7 +1,7 @@
 {
-  "name": "PromptSeen Admin",
+  "name": "TS Prompt Admin",
   "short_name": "PS Admin",
-  "description": "Admin panel for managing PromptSeen prompts and categories",
+  "description": "Admin panel for managing TS Prompt prompts and categories",
   "start_url": "/admin",
   "display": "standalone",
   "background_color": "#0D0500",

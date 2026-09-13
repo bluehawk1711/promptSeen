@@ -123,10 +123,11 @@ export function ImageUpload({
           imageUrl: result.secure_url,
           publicId: result.public_id,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Upload failed';
         setStage("error");
-        setErrorMsg(err.message || "Upload failed");
-        onError?.(err.message || "Upload failed");
+        setErrorMsg(message);
+        onError?.(message);
       }
     },
     [cloudName, uploadPreset, onUploadComplete, onError]

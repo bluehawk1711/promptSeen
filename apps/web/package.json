@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed": "node scripts/seed.mjs",
+    "backup": "node scripts/backup.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -30,7 +32,9 @@
     "d3-array": "^3.2.4",
     "d3-shape": "^3.2.0",
     "date-fns": "^4.4.0",
+    "dotenv": "^16.4.0",
     "firebase": "^12.17.0",
+    "firebase-admin": "^13.0.0",
     "lucide-react": "^1.42.0",
     "motion": "^13.2.0",
     "next": "16.2.6",
