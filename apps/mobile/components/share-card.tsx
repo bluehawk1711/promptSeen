@@ -12,7 +12,7 @@ interface ShareCardProps {
   categoryIcon?: string;
 }
 
-interface ShareCardHandle {
+export interface ShareCardHandle {
   share: () => Promise<void>;
 }
 

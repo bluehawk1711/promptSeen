@@ -7,6 +7,7 @@ import { CORNERS, FONT_SIZE, HEIGHT } from '@/theme/globals';
 import { LucideProps } from 'lucide-react-native';
 import { forwardRef } from 'react';
 import {
+  GestureResponderEvent,
   Pressable,
   TextStyle,
   TouchableOpacity,
@@ -210,7 +211,7 @@ export const Button = forwardRef<View, ButtonProps>(
     // thread, and both the haptic call and `props.onPressIn` are JS-only.
     // Writing to a shared value from JS is fine — Reanimated still runs the
     // spring on the UI thread.
-    const handlePressIn = (ev?: any) => {
+    const handlePressIn = (ev?: GestureResponderEvent) => {
       // Trigger haptic feedback
       triggerHapticFeedback();
 
@@ -228,10 +229,10 @@ export const Button = forwardRef<View, ButtonProps>(
       });
 
       // Call original onPressIn if provided
-      props.onPressIn?.(ev);
+      if (ev) props.onPressIn?.(ev);
     };
 
-    const handlePressOut = (ev?: any) => {
+    const handlePressOut = (ev?: GestureResponderEvent) => {
       // Return to original size with smooth spring
       scale.value = withSpring(1, {
         damping: 20,
@@ -247,7 +248,7 @@ export const Button = forwardRef<View, ButtonProps>(
       });
 
       // Call original onPressOut if provided
-      props.onPressOut?.(ev);
+      if (ev) props.onPressOut?.(ev);
     };
 
     // Handle actual press action

@@ -12,6 +12,7 @@ import React, {
 import {
   NativeSyntheticEvent,
   Pressable,
+  TargetedEvent,
   TextInput,
   TextInputKeyPressEventData,
   TextInputProps,
@@ -147,7 +148,7 @@ export const InputOTP = forwardRef<InputOTPRef, InputOTPProps>(
     );
 
     const handleFocus = useCallback(
-      (e: any) => {
+      (e: NativeSyntheticEvent<TargetedEvent>) => {
         setIsFocused(true);
         setActiveIndex(normalizedValue.length);
         onFocus?.(e);
@@ -156,7 +157,7 @@ export const InputOTP = forwardRef<InputOTPRef, InputOTPProps>(
     );
 
     const handleBlur = useCallback(
-      (e: any) => {
+      (e: NativeSyntheticEvent<TargetedEvent>) => {
         setIsFocused(false);
         onBlur?.(e);
       },

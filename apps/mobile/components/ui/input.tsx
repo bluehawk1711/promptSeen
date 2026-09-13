@@ -5,7 +5,9 @@ import { BORDER_RADIUS, CORNERS, FONT_SIZE, HEIGHT } from '@/theme/globals';
 import { LucideProps } from 'lucide-react-native';
 import React, { forwardRef, ReactElement, useState } from 'react';
 import {
+  NativeSyntheticEvent,
   Pressable,
+  TargetedEvent,
   TextInput,
   TextInputProps,
   TextStyle,
@@ -114,12 +116,12 @@ export const Input = forwardRef<TextInput, InputProps>(
       textAlignVertical: isTextarea ? 'top' : 'center',
     });
 
-    const handleFocus = (e: any) => {
+    const handleFocus = (e: NativeSyntheticEvent<TargetedEvent>) => {
       setIsFocused(true);
       onFocus?.(e);
     };
 
-    const handleBlur = (e: any) => {
+    const handleBlur = (e: NativeSyntheticEvent<TargetedEvent>) => {
       setIsFocused(false);
       onBlur?.(e);
     };
@@ -428,12 +430,12 @@ export const GroupedInputItem = forwardRef<TextInput, GroupedInputItemProps>(
 
     const isTextarea = type === 'textarea';
 
-    const handleFocus = (e: any) => {
+    const handleFocus = (e: NativeSyntheticEvent<TargetedEvent>) => {
       setIsFocused(true);
       onFocus?.(e);
     };
 
-    const handleBlur = (e: any) => {
+    const handleBlur = (e: NativeSyntheticEvent<TargetedEvent>) => {
       setIsFocused(false);
       onBlur?.(e);
     };

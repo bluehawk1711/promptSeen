@@ -95,7 +95,7 @@ export function SheetTrigger({ children, asChild }: SheetTriggerProps) {
   };
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, {
+    return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
       onPress: handlePress,
     });
   }

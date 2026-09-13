@@ -31,7 +31,7 @@ import { usePromptsStore } from '@/store/prompts';
 import { useFavoritesStore } from '@/store/favorites';
 import { useCategoriesStore } from '@/store/categories';
 import { useRewardAd } from '@/components/reward-ad';
-import { ShareCard } from '@/components/share-card';
+import { ShareCard, type ShareCardHandle } from '@/components/share-card';
 import { useRelatedPromptsQuery } from '@/lib/queries';
 import { trackEvent, trackStat } from '@/lib/analytics';
 import type { Prompt } from '@repo/shared/types';
@@ -57,7 +57,7 @@ export default function PromptDetailScreen() {
   const { getCategoryById } = useCategoriesStore();
   const { showRewardAd } = useRewardAd();
 
-  const shareCardRef = useRef<any>(null);
+  const shareCardRef = useRef<ShareCardHandle>(null);
 
   const [copied, setCopied] = useState(false);
   const [unlocking, setUnlocking] = useState(false);

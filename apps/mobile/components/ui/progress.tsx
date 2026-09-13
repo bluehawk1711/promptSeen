@@ -2,7 +2,7 @@ import { View } from '@/components/ui/view';
 import { useColor } from '@/hooks/useColor';
 import { HEIGHT } from '@/theme/globals';
 import React, { useEffect } from 'react';
-import { ViewStyle } from 'react-native';
+import { LayoutChangeEvent, ViewStyle } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -136,7 +136,7 @@ export function Progress({
     ...(style ? [style] : []),
   ];
 
-  const onLayout = (event: any) => {
+  const onLayout = (event: LayoutChangeEvent) => {
     containerWidth.value = event.nativeEvent.layout.width;
   };
 

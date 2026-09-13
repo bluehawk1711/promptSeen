@@ -17,6 +17,7 @@ import {
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
 import Animated, {
+  AnimatedStyle,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -29,7 +30,7 @@ type BottomSheetContentProps = {
   children: React.ReactNode;
   title?: string;
   style?: ViewStyle;
-  rBottomSheetStyle: any;
+  rBottomSheetStyle: AnimatedStyle<ViewStyle>;
   cardColor: string;
   mutedColor: string;
   screenHeight: number;

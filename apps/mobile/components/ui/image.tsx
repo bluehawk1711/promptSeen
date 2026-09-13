@@ -8,13 +8,13 @@ import {
   ImageSource,
 } from 'expo-image';
 import { forwardRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
 
 export interface ImageProps extends Omit<ExpoImageProps, 'style'> {
   variant?: 'rounded' | 'circle' | 'default';
   source: ImageSource;
   style?: ExpoImageProps['style'];
-  containerStyle?: any;
+  containerStyle?: ViewStyle;
   showLoadingIndicator?: boolean;
   showErrorFallback?: boolean;
   errorFallbackText?: string;
@@ -75,13 +75,13 @@ export const Image = forwardRef<ExpoImage, ImageProps>(
 
     // Container dimensions - fill container by default, or use provided dimensions
     const containerDimensions =
-      width || height || aspectRatio
+      (width || height || aspectRatio
         ? {
             ...(width ? { width } : {}),
             ...(height ? { height } : {}),
             ...(aspectRatio ? { aspectRatio } : {}),
           }
-        : { width: '100%', height: '100%' };
+        : { width: '100%', height: '100%' }) as ViewStyle;
 
     // Image styles - always fill the container
     const imageStyles = [

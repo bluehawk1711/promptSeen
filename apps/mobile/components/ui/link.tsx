@@ -2,7 +2,7 @@ import { Text } from '@/components/ui/text';
 import { Link as ERLink, Href } from 'expo-router';
 import { openBrowserAsync } from 'expo-web-browser';
 import { type ComponentProps } from 'react';
-import { Linking, Platform } from 'react-native';
+import { GestureResponderEvent, Linking, Platform } from 'react-native';
 
 export interface LinkProps extends Omit<ComponentProps<typeof ERLink>, 'href'> {
   href: Href;
@@ -61,7 +61,7 @@ export function Link({
 }: LinkProps) {
   const isExternal = isExternalUrl(href);
 
-  const handlePress = async (event: any) => {
+  const handlePress = async (event: GestureResponderEvent | React.MouseEvent) => {
     if (isExternal) {
       // Always prevent default for external links
       event.preventDefault();
