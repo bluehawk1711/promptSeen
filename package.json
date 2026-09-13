@@ -1,10 +1,11 @@
 {
   "name": "ts-prompt",
   "private": true,
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev:mobile": "pnpm --filter mobile start",
     "dev:web": "pnpm --filter web dev",
-    "build:web": "pnpm --filter web build",
+    "build:web": "pnpm --filter @repo/shared build && pnpm --filter web build",
     "start:web": "pnpm --filter web start",
     "build:shared": "pnpm --filter @repo/shared build",
     "typecheck": "pnpm -r run typecheck",
@@ -12,6 +13,9 @@
     "test": "pnpm -r run test",
     "seed": "pnpm --filter web seed",
     "backup": "pnpm --filter web backup"
+  },
+  "devDependencies": {
+    "next": "16.2.6"
   },
   "engines": {
     "node": ">=18"
