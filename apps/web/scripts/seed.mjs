@@ -143,9 +143,11 @@ async function seed() {
 
   // Seed admin user
   console.log("👤 Seeding admin user...");
-  const adminRef = db.collection("users").doc("admin-demo-001");
+  // Use the actual Firebase Auth UID so isAdmin() rule works
+  const ADMIN_UID = "lRfHy36MNfY6Fnw73i1BA8M01W63";
+  const adminRef = db.collection("users").doc(ADMIN_UID);
   batch.set(adminRef, {
-    email: "admin@promptseen.com",
+    email: "admin@tsprompt.com",
     displayName: "Demo Admin",
     isAdmin: true,
     createdAt: Date.now(),
@@ -218,11 +220,11 @@ async function seed() {
   // Seed push notifications
   console.log("🔔 Seeding push notifications...");
   const notifications = [
-    { id: "notif-demo-001", title: "Welcome to PromptSeen! 🎉", body: "Discover thousands of curated AI prompts for marketing, coding, and more.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: "admin-demo-001", source: "manual", promptId: null },
-    { id: "notif-demo-002", title: "New Marketing Prompts ✨", body: "Check out 5 new prompts for your next campaign.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: "admin-demo-001", source: "auto", promptId: "prompt-001" },
-    { id: "notif-demo-003", title: "🔥 Trending: Coding Prompts", body: "These coding prompts are getting 3x more copies this week.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 4, openedCount: 2, sentBy: "admin-demo-001", source: "manual", promptId: null },
-    { id: "notif-demo-004", title: "New Creative Writing Prompts", body: "Unleash your creativity with 8 new writing prompts.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: "admin-demo-001", source: "auto", promptId: "prompt-005" },
-    { id: "notif-demo-005", title: "Weekly Digest 📊", body: "Your app got 1,250 prompt views this week. Keep it up!", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: "admin-demo-001", source: "manual", promptId: null },
+    { id: "notif-demo-001", title: "Welcome to TS Prompt! 🎉", body: "Discover thousands of curated AI prompts for marketing, coding, and more.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: ADMIN_UID, source: "manual", promptId: null },
+    { id: "notif-demo-002", title: "New Marketing Prompts ✨", body: "Check out 5 new prompts for your next campaign.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: ADMIN_UID, source: "auto", promptId: "prompt-001" },
+    { id: "notif-demo-003", title: "🔥 Trending: Coding Prompts", body: "These coding prompts are getting 3x more copies this week.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 4, openedCount: 2, sentBy: ADMIN_UID, source: "manual", promptId: null },
+    { id: "notif-demo-004", title: "New Creative Writing Prompts", body: "Unleash your creativity with 8 new writing prompts.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: ADMIN_UID, source: "auto", promptId: "prompt-005" },
+    { id: "notif-demo-005", title: "Weekly Digest 📊", body: "Your app got 1,250 prompt views this week. Keep it up!", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: ADMIN_UID, source: "manual", promptId: null },
   ];
   for (let i = 0; i < notifications.length; i++) {
     const ref = db.collection("push_notifications").doc(notifications[i].id);
@@ -242,7 +244,7 @@ async function seed() {
   console.log("   Summary:");
   console.log(`   - ${CATEGORIES.length} categories`);
   console.log(`   - ${PROMPTS.length} prompts`);
-  console.log(`   - 1 admin user (admin@promptseen.com)`);
+  console.log(`   - 1 admin user (admin@tsprompt.com)`);
   console.log(`   - ${users.length} sample users`);
   console.log(`   - ${submissions.length} submissions`);
   console.log(`   - 14 days of daily stats`);

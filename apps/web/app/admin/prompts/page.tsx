@@ -345,24 +345,23 @@ export default function PromptsPage() {
               <Textarea value={formText} onChange={(e) => setFormText(e.target.value)} placeholder="Enter the prompt text..." rows={4} />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex flex-col gap-2">
-                <Label>Category *</Label>
-                <MultiSelect value={formCategoryIds} onValueChange={setFormCategoryIds}>
-                  <MultiSelectTrigger><MultiSelectValue placeholder="Select category" /></MultiSelectTrigger>
-                  <MultiSelectContent>
-                    <MultiSelectList ariaLabel="Categories">
-                      {categories.map((cat) => (
-                        <MultiSelectItem key={cat.id} value={cat.id}>{cat.name}</MultiSelectItem>
-                      ))}
-                    </MultiSelectList>
-                  </MultiSelectContent>
-                </MultiSelect>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Order</Label>
-                <Input type="number" value={formOrder} onChange={(e) => setFormOrder(e.target.value)} />
-              </div>
+            <div className="flex flex-col gap-2">
+              <Label>Category *</Label>
+              <MultiSelect value={formCategoryIds} onValueChange={setFormCategoryIds}>
+                <MultiSelectTrigger><MultiSelectValue placeholder="Select category" /></MultiSelectTrigger>
+                <MultiSelectContent>
+                  <MultiSelectList ariaLabel="Categories">
+                    {categories.map((cat) => (
+                      <MultiSelectItem key={cat.id} value={cat.id}>{cat.name}</MultiSelectItem>
+                    ))}
+                  </MultiSelectList>
+                </MultiSelectContent>
+              </MultiSelect>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Order</Label>
+              <Input type="number" value={formOrder} onChange={(e) => setFormOrder(e.target.value)} />
             </div>
 
             <div className="flex flex-col gap-2">
