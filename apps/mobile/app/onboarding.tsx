@@ -437,7 +437,8 @@ export default function OnboardingScreen() {
 
   const scrollX = useSharedValue(0);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<Animated.ScrollView>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const flatListRef = useRef<any>(null);
 
   const isLastSlide = currentIndex === SLIDES.length - 1;
 
@@ -529,7 +530,7 @@ export default function OnboardingScreen() {
 
       {/* Parallax FlatList */}
       <AnimatedFlatList
-        ref={flatListRef as any}
+        ref={flatListRef}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}

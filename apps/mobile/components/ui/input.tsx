@@ -13,6 +13,10 @@ import {
   ViewStyle,
 } from 'react-native';
 
+interface ChildWithError {
+  error?: string;
+}
+
 export interface InputProps extends Omit<TextInputProps, 'style'> {
   label?: string;
   error?: string;
@@ -317,8 +321,8 @@ export const GroupedInput = ({
 
   const errors = childrenArray
     .filter(
-      (child): child is ReactElement<any> =>
-        React.isValidElement(child) && !!(child.props as any).error
+      (child): child is ReactElement<ChildWithError> =>
+        React.isValidElement(child) && !!(child.props as ChildWithError).error
     )
     .map((child) => child.props.error);
 

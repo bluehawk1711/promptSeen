@@ -1,10 +1,13 @@
 /**
- * Backup Script — exports all Firestore data as a JSON file.
+ * Backup Script — exports Firestore data as a JSON file.
  *
  * Usage:
- *   node scripts/backup.mjs
+ *   node scripts/backup.mjs                          # Backup all collections
+ *   node scripts/backup.mjs --collection prompts     # Backup specific collection
+ *   node scripts/backup.mjs --collection prompts,categories,users
+ *   node scripts/backup.mjs --exclude fcm_tokens,push_notifications
  *
- * Outputs: backup-YYYY-MM-DD.json in the current directory.
+ * Outputs: tsprompt-backup-YYYY-MM-DD.json in the current directory.
  *
  * Requires:
  *   FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY env vars (or .env.local)
@@ -23,6 +26,18 @@ const __dirname = dirname(__filename);
 // Load .env.local
 config({ path: join(__dirname, "..", ".env.local") });
 config({ path: join(__dirname, "..", ".env") });
+
+// ─── CLI Args ────────────────────────────────────────────────────────────────
+
+const args = process.argv.slice(2);
+
+function getArg(name) {
+  const idx = args.indexOf(`--${name}`);
+  return idx !== -1 ? args[idx + 1] : undefined;
+}
+
+const collectionArg = getArg("collection");
+const excludeArg = getArg("exclude");
 
 // ─── Initialize Firebase Admin ───────────────────────────────────────────────
 
@@ -46,9 +61,9 @@ if (getApps().length === 0) {
 
 const db = getFirestore();
 
-// ─── Collections to backup ──────────────────────────────────────────────────
+// ─── All available collections ───────────────────────────────────────────────
 
-const COLLECTIONS = [
+const ALL_COLLECTIONS = [
   "prompts",
   "categories",
   "users",
@@ -61,6 +76,22 @@ const COLLECTIONS = [
   "settings",
 ];
 
+// Determine which collections to back up
+let collectionsToBackup = ALL_COLLECTIONS;
+
+if (collectionArg) {
+  // Explicit inclusion list
+  collectionsToBackup = collectionArg.split(",").map((c) => c.trim());
+  console.log(`📋 Backing up specified collections: ${collectionsToBackup.join(", ")}\n`);
+} else if (excludeArg) {
+  // Exclude specific collections
+  const excluded = excludeArg.split(",").map((c) => c.trim());
+  collectionsToBackup = ALL_COLLECTIONS.filter((c) => !excluded.includes(c));
+  console.log(`📋 Backing up all collections except: ${excluded.join(", ")}\n`);
+} else {
+  console.log("📋 Backing up all collections\n");
+}
+
 // ─── Backup Function ────────────────────────────────────────────────────────
 
 async function backup() {
@@ -71,13 +102,13 @@ async function backup() {
       timestamp: new Date().toISOString(),
       projectId,
       counts: {},
-      collections: COLLECTIONS,
+      collections: collectionsToBackup,
     },
   };
 
   let totalDocs = 0;
 
-  for (const collectionName of COLLECTIONS) {
+  for (const collectionName of collectionsToBackup) {
     try {
       const snapshot = await db.collection(collectionName).get();
       const docs = snapshot.docs.map((doc) => ({
@@ -99,13 +130,13 @@ async function backup() {
 
   // Write to file
   const dateStr = new Date().toISOString().split("T")[0];
-  const filename = `backup-${dateStr}.json`;
+  const filename = `tsprompt-backup-${dateStr}.json`;
   const filepath = join(process.cwd(), filename);
 
   writeFileSync(filepath, JSON.stringify(backupData, null, 2));
 
   console.log(`\n🎉 Backup complete!`);
-  console.log(`   ${totalDocs} total documents across ${COLLECTIONS.length} collections`);
+  console.log(`   ${totalDocs} total documents across ${collectionsToBackup.length} collections`);
   console.log(`   Saved to: ${filename}\n`);
 }
 

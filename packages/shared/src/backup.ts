@@ -26,6 +26,25 @@ import type {
   PromptSubmission,
 } from './types.js';
 
+/** Document with either an 'id' or 'uid' field for Firestore keying. */
+interface BackupDoc {
+  id?: string;
+  uid?: string;
+}
+
+function isBackupDoc(val: unknown): val is BackupDoc {
+  return typeof val === 'object' && val !== null && ('id' in val || 'uid' in val);
+}
+
+function getDocId(docData: BackupDoc): string {
+  return docData.id ?? docData.uid ?? '';
+}
+
+function getDocData(docData: unknown): Record<string, unknown> {
+  const { id: _, uid: __, ...rest } = docData as Record<string, unknown>;
+  return rest;
+}
+
 /** All collections that are part of the backup. */
 const BACKUP_COLLECTIONS = ['prompts', 'categories', 'users', 'collections', 'submissions'] as const;
 
@@ -150,9 +169,8 @@ export async function importFirestoreData(
       const chunk = docs.slice(i, i + BATCH_SIZE);
 
       for (const docData of chunk) {
-        // UserProfile uses 'uid', others use 'id'
-        const docId = (docData as any).id ?? (docData as any).uid;
-        const { id: _, uid: __, ...data } = docData as any;
+        const docId = isBackupDoc(docData) ? getDocId(docData) : '';
+        const data = getDocData(docData);
         batch.set(doc(db, collectionName, docId), data);
       }
 

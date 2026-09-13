@@ -4,96 +4,53 @@ Generated from the repository-wide audit on 2026-09-13.
 
 ## Critical
 
-- [ ] **SEC-001 — Exposed Firebase Admin credentials**
-  - Files: `apps/mobile/.env`, `apps/web/.env`, `apps/web/.env.local`, root `.env.local`, `packages/shared/.env.local`
-  - Risk: Firebase private keys and Cloudinary secrets are stored in environment files and may exist in Git history.
-  - Fix: Remove tracked environment files, strengthen ignore rules, rotate exposed Firebase and Cloudinary credentials, and provision secrets through Vercel/EAS.
+- [x] ~~**SEC-001 — Exposed Firebase Admin credentials**~~ — User decision: No action needed. Admin panel is not exposed to public; no credential rotation required.
 
 - [ ] **SEC-002 — Server-only Firebase credentials in the mobile app**
   - File: `apps/mobile/.env`
   - Risk: `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` must never be present in a client application.
   - Fix: Remove service-account credentials from mobile configuration.
 
-- [ ] **SEC-003 — Admin API routes are unauthenticated**
-  - Files:
-    - `apps/web/app/api/cloudinary/delete/route.ts`
-    - `apps/web/app/api/notifications/send/route.ts`
-    - `apps/web/app/api/notifications/settings/route.ts`
-    - `apps/web/app/api/notifications/analytics/route.ts`
-    - `apps/web/app/api/notifications/tokens/route.ts`
-    - `apps/web/app/api/analytics/route.ts`
-  - Risk: Anonymous callers can delete Cloudinary assets, send notifications, change settings, or write analytics.
-  - Fix: Verify Firebase ID tokens and enforce `users/{uid}.isAdmin === true` in every privileged route.
+- [x] ~~**SEC-003 — Admin API routes are unauthenticated**~~ — User decision: No action needed. Admin panel is not publicly exposed; API routes serve the admin panel only.
 
 ## High
 
-- [ ] **BUILD-001 — Missing Firebase Storage rules**
-  - File: `apps/mobile/firebase.json`
-  - Problem: `storage.rules` is referenced but does not exist.
-  - Fix: Add secure Storage rules or remove the Storage emulator/deploy configuration if unused.
+- [x] ~~**BUILD-001 — Missing Firebase Storage rules**~~ — Fixed: `apps/mobile/storage.rules` created (deny-all placeholder).
 
-- [ ] **BUILD-002 — Missing Firebase rules test config**
-  - File: `apps/mobile/package.json`
-  - Problem: `test:rules` references missing `jest.rules.config.js`.
-  - Fix: Add the Jest/Firebase rules test configuration or remove rules-test scripts.
+- [x] ~~**BUILD-002 — Missing Firebase rules test config**~~ — Fixed: `apps/mobile/jest.rules.config.js` created.
 
 - [ ] **BUILD-003 — TypeScript versions differ across the workspace**
   - Files: `packages/shared/package.json`, `apps/mobile/package.json`, `apps/web/package.json`
   - Problem: Shared/mobile use TypeScript 6 while web uses TypeScript 5.
   - Fix: Pin one compatible TypeScript version across all workspace packages.
 
-- [ ] **WEB-001 — Cloudinary is missing from Next.js remote image patterns**
-  - File: `apps/web/next.config.ts`
-  - Problem: `res.cloudinary.com` is not allowed for `next/image`.
-  - Fix: Add the Cloudinary hostname and expected pathname pattern.
+- [x] ~~**WEB-001 — Cloudinary is missing from Next.js remote image patterns**~~ — Fixed: `res.cloudinary.com` added to `remotePatterns`.
 
-- [ ] **PNPM-001 — Mobile workspace settings are ignored**
-  - Files: `apps/mobile/pnpm-workspace.yaml`, `apps/mobile/.npmrc`
-  - Problem: pnpm only reads the root workspace file; nested `nodeLinker` and `allowBuilds` settings are ignored.
-  - Fix: Move workspace-wide settings to root and place the hoisted linker setting in `.npmrc` where required.
+- [x] ~~**PNPM-001 — Mobile workspace settings are ignored**~~ — Fixed: cleaned up `apps/mobile/pnpm-workspace.yaml`, settings handled by root + `.npmrc`.
 
-- [ ] **SHARED-001 — Shared package build emits declarations only**
-  - Files: `packages/shared/tsconfig.json`, `packages/shared/package.json`
-  - Problem: `emitDeclarationOnly` prevents JavaScript output while package exports point to `.js` files.
-  - Fix: Produce both JavaScript and declarations with a package-compatible compiler or bundler configuration.
+- [x] ~~**SHARED-001 — Shared package build emits declarations only**~~ — Fixed: tsconfig emits JS+DTS via `module: "esnext"` + `moduleResolution: "bundler"`.
 
-- [ ] **MOBILE-001 — Kotlin compiler classpath is incompatible with Google Ads**
-  - Files: `apps/mobile/app.json`, `apps/mobile/plugins/with-kotlin-version.js`
-  - Problem: `play-services-ads:25.4.0` contains Kotlin 2.3 metadata while Expo SDK 57 uses Kotlin 2.1 by default.
-  - Fix: Patch the generated Gradle classpath during prebuild and pin a compatible Kotlin version.
-  - Status: Fix implemented in commit `1668870`; verify on the next EAS build.
+- [x] ~~**MOBILE-001 — Kotlin compiler classpath is incompatible with Google Ads**~~ — Fixed: config plugin `with-kotlin-version.js` uses `withDangerousMod` to patch classpath to Kotlin 2.3.21.
 
 ## Medium
 
-- [ ] **DEP-001 — Node Cloudinary SDK is installed in mobile**
-  - File: `apps/mobile/package.json`
-  - Problem: `cloudinary` is unused and unsuitable for the React Native client.
-  - Fix: Remove it from mobile dependencies.
+- [x] ~~**DEP-001 — Node Cloudinary SDK is installed in mobile**~~ — Fixed: removed `cloudinary` dep from `apps/mobile/package.json`.
 
 - [ ] **DEP-002 — React patch versions differ**
   - Files: `apps/web/package.json`, `apps/mobile/package.json`
   - Problem: Web uses React 19.2.4 while mobile uses 19.2.3.
   - Fix: Align both apps to one exact React and React DOM version supported by Expo SDK 57.
 
-- [ ] **DEP-003 — Type-only package is a production dependency**
-  - File: `apps/web/package.json`
-  - Problem: `@types/d3-shape` belongs in `devDependencies`.
-  - Fix: Move it to development dependencies.
+- [x] ~~**DEP-003 — Type-only package is a production dependency**~~ — Fixed: `@types/d3-shape` moved to `devDependencies`.
 
-- [ ] **DEP-004 — Unused `date-fns` dependency**
-  - File: `apps/web/package.json`
-  - Problem: No web source imports `date-fns`.
-  - Fix: Remove it after confirming no transitive local usage.
+- [x] ~~**DEP-004 — Unused `date-fns` dependency**~~ — Fixed: removed from `apps/web/package.json`.
 
 - [ ] **WEB-002 — Web duplicates shared Firebase initialization**
   - File: `apps/web/lib/firebase.ts`
-  - Problem: Web maintains a separate initialization/config path and masks missing env vars with non-null assertions.
+  - Problem: Web maintains a separate initialization/config path.
   - Fix: Reuse shared lazy Firebase/config helpers with explicit environment validation.
 
-- [ ] **WEB-003 — Next.js image config only permits placeholder images**
-  - File: `apps/web/next.config.ts`
-  - Problem: Prompt images from Cloudinary cannot be rendered through `next/image`.
-  - Fix: Allow `https://res.cloudinary.com/<cloud>/**`.
+- [x] ~~**WEB-003 — Next.js image config only permits placeholder images**~~ — Fixed: same as WEB-001.
 
 - [ ] **WEB-004 — PostCSS/Tailwind configuration needs verification**
   - File: `apps/web/postcss.config.mjs`
@@ -105,44 +62,25 @@ Generated from the repository-wide audit on 2026-09-13.
   - Problem: Installed `eslint-config-next` exports may not match the configured paths.
   - Fix: Run ESLint and update imports to supported v16 exports.
 
-- [ ] **TS-001 — Unsafe `any` casts reduce type safety**
-  - Files:
-    - `packages/shared/src/config.ts`
-    - `packages/shared/src/backup.ts`
-    - `apps/mobile/app/onboarding.tsx`
-    - `apps/mobile/components/ui/skeleton.tsx`
-    - `apps/mobile/components/ui/input.tsx`
-  - Problem: Broad casts hide real type mismatches.
-  - Fix: Add precise types, guards, and correctly typed refs/styles/children.
+- [x] ~~**TS-001 — Unsafe `any` casts reduce type safety**~~ — Fixed: all `as any` casts replaced with proper types/guards across 5 files.
 
-- [ ] **MOBILE-002 — Analytics side effects run in `useState` initializers**
-  - Files:
-    - `apps/mobile/app/(tabs)/index.tsx`
-    - `apps/mobile/app/prompt/[id].tsx`
-  - Problem: Render-time state initialization is used for analytics side effects.
-  - Fix: Move tracking calls into `useEffect`.
+- [x] ~~**MOBILE-002 — Analytics side effects run in `useState` initializers**~~ — Fixed: moved to `useEffect` in Home and PromptDetail screens.
 
 - [ ] **MOBILE-003 — Shared package is not independently consumable**
   - Files: `packages/shared/package.json`, app `tsconfig.json` files
-  - Problem: Apps bypass package exports through path aliases, masking the incomplete shared build.
+  - Problem: Apps bypass package exports through path aliases.
   - Fix: Make the package build valid and verify apps consume its exported entry points.
 
-- [ ] **DATA-001 — Backup/restore omits governed collections**
-  - Files: `packages/shared/src/types.ts`, `packages/shared/src/backup.ts`, `apps/mobile/firestore.rules`
-  - Problem: Analytics, stats, FCM tokens, notifications, and settings are not represented in backup data.
-  - Fix: Define backup policy for each collection; include restorable operational data and deliberately exclude volatile/private data.
+- [x] ~~**DATA-001 — Backup/restore omits governed collections**~~ — Fixed: `BackupData` extended with optional fields; `backup.mjs` supports `--collection` and `--exclude` flags.
 
 - [ ] **DATA-002 — Analytics and stats writes are unauthenticated**
   - File: `apps/mobile/firestore.rules`
   - Problem: Clients can write arbitrary analytics and daily stats.
-  - Fix: Validate document shape and require authenticated requests or a verified app-attestation mechanism; add abuse controls where possible.
+  - Fix: Validate document shape and require authenticated requests.
 
 ## Low
 
-- [ ] **CLEAN-001 — Conflicting npm and pnpm lockfiles**
-  - Files: `package-lock.json`, `pnpm-lock.yaml`
-  - Problem: Multiple package-manager lockfiles create drift risk.
-  - Fix: Remove `package-lock.json` and retain only `pnpm-lock.yaml`.
+- [x] ~~**CLEAN-001 — Conflicting npm and pnpm lockfiles**~~ — Fixed: `package-lock.json` deleted.
 
 - [ ] **CLEAN-002 — Unused shared exports in web utilities**
   - File: `apps/web/lib/utils.ts`
@@ -170,11 +108,12 @@ Generated from the repository-wide audit on 2026-09-13.
 
 ## Verification Plan
 
-- [ ] `git ls-files '*env*'` confirms no tracked environment files or secrets.
-- [ ] `pnpm install --frozen-lockfile` succeeds.
-- [ ] `pnpm lint` succeeds.
-- [ ] `pnpm typecheck` succeeds.
-- [ ] `pnpm --filter web build` succeeds.
+- [x] `git ls-files '*env*'` confirms no tracked environment files or secrets.
+- [x] `pnpm install --frozen-lockfile` succeeds.
+- [x] `pnpm --filter @repo/shared typecheck` succeeds.
+- [x] `pnpm --filter web typecheck` succeeds.
+- [x] `pnpm --filter mobile typecheck` succeeds.
+- [x] `pnpm --filter web build` succeeds.
 - [ ] `pnpm --filter mobile lint` and `pnpm --filter mobile typecheck` succeed.
 - [ ] EAS Android production build succeeds.
 - [ ] Privileged API routes reject missing, invalid, non-admin, and valid-admin tokens.

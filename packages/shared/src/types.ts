@@ -117,6 +117,16 @@ export interface BackupData {
   users: UserProfile[];
   userCollections: Collection[];
   submissions: PromptSubmission[];
+  /** Analytics events (optional — excluded by default for size). */
+  analyticsEvents?: AnalyticsEvent[];
+  /** Daily aggregated stats (optional). */
+  dailyStats?: DailyStats[];
+  /** FCM device tokens (optional — excluded by default for privacy). */
+  fcmTokens?: FCMToken[];
+  /** Push notification history (optional). */
+  pushNotifications?: PushNotification[];
+  /** App settings (optional). */
+  settings?: Record<string, unknown>[];
 }
 
 // ─── Collections ───────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { useColor } from '@/hooks/useColor';
 import { BORDER_RADIUS, CORNERS } from '@/theme/globals';
 import React, { useEffect } from 'react';
-import { ViewStyle } from 'react-native';
+import { DimensionValue, ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   useSharedValue,
@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 interface SkeletonProps {
-  width?: number | string;
+  width?: DimensionValue;
   height?: number;
   style?: ViewStyle;
   variant?: 'default' | 'rounded';
@@ -53,7 +53,7 @@ export const Skeleton = React.memo(function Skeleton({
       accessibilityLabel='Loading content'
       style={[
         {
-          width: width as any,
+          width,
           height,
           backgroundColor: mutedColor,
           borderRadius: variant === 'default' ? CORNERS : BORDER_RADIUS,
