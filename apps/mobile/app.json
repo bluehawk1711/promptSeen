@@ -30,6 +30,7 @@
       "expo-router",
       "expo-web-browser",
       "expo-dev-client",
+      "./plugins/with-kotlin-version",
       [
         "expo-updates",
         {
