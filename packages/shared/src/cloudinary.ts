@@ -244,11 +244,6 @@ export function uploadToCloudinary(
     formData.append('file', blob);
     formData.append('upload_preset', uploadPreset);
     formData.append('folder', folder);
-    // Cloudinary server-side transform as a safety net
-    formData.append(
-      'transformation',
-      `c_fill,w_${TARGET_WIDTH},h_${TARGET_HEIGHT},q_${QUALITY},f_auto`
-    );
 
     xhr.open(
       'POST',
