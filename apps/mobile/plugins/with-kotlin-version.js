@@ -1,4 +1,4 @@
-const { withDangerousMod, withGradleProperties } = require("expo/config-plugins");
+const { withDangerousMod } = require("expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
 
@@ -37,18 +37,42 @@ function withKotlinClasspath(config) {
   ]);
 }
 
+function withKotlinVersionProperty(config) {
+  return withDangerousMod(config, [
+    "android",
+    (config) => {
+      const propsPath = path.join(
+        config.modRequest.platformProjectRoot,
+        "gradle.properties"
+      );
+
+      if (!fs.existsSync(propsPath)) {
+        console.log("gradle.properties not found, skipping kotlinVersion property");
+        return config;
+      }
+
+      let content = fs.readFileSync(propsPath, "utf-8");
+
+      const kotlinPropRegex = /android\.kotlinVersion\s*=.*/;
+      const replacement = `android.kotlinVersion=${KOTLIN_VERSION}`;
+
+      if (kotlinPropRegex.test(content)) {
+        content = content.replace(kotlinPropRegex, replacement);
+      } else {
+        content = content.trimEnd() + `\n${replacement}\n`;
+      }
+
+      fs.writeFileSync(propsPath, content, "utf-8");
+      console.log(`Set android.kotlinVersion=${KOTLIN_VERSION} in gradle.properties`);
+
+      return config;
+    },
+  ]);
+}
+
 function withKotlinVersion(config) {
   config = withKotlinClasspath(config);
-
-  config = withGradleProperties(config, (config) => {
-    config.modResults.items.push({
-      type: "property",
-      key: "android.kotlinVersion",
-      value: KOTLIN_VERSION,
-    });
-    return config;
-  });
-
+  config = withKotlinVersionProperty(config);
   return config;
 }
 
