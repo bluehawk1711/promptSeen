@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -42,11 +42,11 @@ export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Track screen view + active user on mount
-  useState(() => {
+  useEffect(() => {
     trackEvent('screen_view', { metadata: { screen: 'home' } });
     trackActiveUser('anonymous');
     trackStat('activeUsers');
-  });
+  }, []);
 
   const dailyPrompt = useMemo(() => getDailyPrompt(), [prompts]);
 

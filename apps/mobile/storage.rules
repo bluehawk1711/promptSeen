@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// Firebase Storage security rules for PromptSeen.
+//
+// Storage is currently unused. These rules deny all access until
+// a storage bucket is configured for prompt images or user uploads.
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

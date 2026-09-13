@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from 'react';
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -68,12 +68,12 @@ export default function PromptDetailScreen() {
   const category = prompt ? getCategoryById(prompt.categoryId) : null;
 
   // Track prompt view on mount
-  useState(() => {
+  useEffect(() => {
     if (id) {
       trackEvent('prompt_view', { promptId: id });
       trackStat('promptViews');
     }
-  });
+  }, [id]);
 
   // ── Infinite scroll related prompts ─────────────────────────────────
   const {
