@@ -1,9 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { collection, addDoc, doc, updateDoc } from 'firebase/firestore'
 import { CheckCircle, XCircle, Clock, Loader2, MessageSquare, User } from 'lucide-react'
-import { getDb } from '@/lib/firebase'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
@@ -12,7 +10,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent } from '@/components/ui/card'
-import { useAdminSubmissions, useAdminCategories, useReviewSubmission } from '@/lib/admin-queries'
+import { useAdminSubmissions, useAdminCategories, useReviewSubmission, useApproveSubmission } from '@/lib/admin-queries'
 import { useToast } from '@/lib/use-toast'
 import type { PromptSubmission } from '@repo/shared/types'
 import {
@@ -33,12 +31,15 @@ export default function SubmissionsPage() {
   const { data: submissions = [], isLoading } = useAdminSubmissions()
   const { data: categories = [] } = useAdminCategories()
   const reviewMutation = useReviewSubmission()
+  const approveMutation = useApproveSubmission()
   const toast = useToast()
 
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [reviewSheet, setReviewSheet] = useState<PromptSubmission | null>(null)
   const [reviewNote, setReviewNote] = useState('')
   const [categoryId, setCategoryId] = useState('')
+
+  const isProcessing = reviewMutation.isPending || approveMutation.isPending
 
   const openReview = (submission: PromptSubmission) => {
     setReviewSheet(submission)
@@ -48,23 +49,12 @@ export default function SubmissionsPage() {
 
   const handleApprove = async () => {
     if (!reviewSheet) return
-    const promptRef = await addDoc(collection(getDb(), 'prompts'), {
-      text: reviewSheet.text,
-      imageUrl: reviewSheet.imageUrl || '',
-      cloudinaryPublicId: '',
+    await approveMutation.mutateAsync({
+      submission: reviewSheet,
       categoryId,
-      order: 999,
-      likesCount: 0,
-      copiesCount: 0,
-      shareCount: 0,
-      tags: reviewSheet.tags,
-      isActive: true,
-      isPremium: false,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      reviewNote,
+      reviewedBy: 'admin',
     })
-    await reviewMutation.mutateAsync({ id: reviewSheet.id, status: 'approved', reviewNote, reviewedBy: 'admin' })
-    await updateDoc(doc(getDb(), 'submissions', reviewSheet.id), { approvedPromptId: promptRef.id })
     toast.success('Submission approved', 'The prompt has been published.')
     setReviewSheet(null)
   }
@@ -223,8 +213,8 @@ export default function SubmissionsPage() {
         </Card>
       </FadeIn>
 
-      <Sheet open={reviewSheet !== null} onOpenChange={() => setReviewSheet(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <Sheet open={reviewSheet !== null} onOpenChange={(open) => { if (!open && isProcessing) return; setReviewSheet(open ? reviewSheet : null) }}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto" showCloseButton={!isProcessing}>
           <SheetHeader>
             <SheetTitle>Review Submission</SheetTitle>
             <SheetDescription>Review this prompt submission and approve or reject it.</SheetDescription>
@@ -263,10 +253,11 @@ export default function SubmissionsPage() {
           )}
 
           <SheetFooter>
-            <Button variant="outline" onClick={handleReject} disabled={reviewMutation.isPending}>
+            <Button variant="outline" onClick={handleReject} disabled={isProcessing}>
               <XCircle size={14} className="mr-1" /> Reject
             </Button>
-            <Button onClick={handleApprove} disabled={reviewMutation.isPending || !categoryId} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={handleApprove} disabled={isProcessing || !categoryId} className="bg-green-600 hover:bg-green-700">
+              {(approveMutation.isPending) && <Loader2 size={14} className="mr-1 animate-spin" />}
               <CheckCircle size={14} className="mr-1" /> Approve & Publish
             </Button>
           </SheetFooter>

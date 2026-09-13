@@ -156,8 +156,8 @@ export default function CategoriesPage() {
         </Card>
       </FadeIn>
 
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent>
+      <Sheet open={sheetOpen} onOpenChange={(open) => { if (!open && (createCategory.isPending || updateCategory.isPending)) return; setSheetOpen(open) }}>
+        <SheetContent showCloseButton={!(createCategory.isPending || updateCategory.isPending)}>
           <SheetHeader>
             <SheetTitle>{editingCategory ? 'Edit Category' : 'Create Category'}</SheetTitle>
             <SheetDescription>{editingCategory ? 'Update the category details.' : 'Add a new category for prompts.'}</SheetDescription>

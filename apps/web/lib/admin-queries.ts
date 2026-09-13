@@ -25,7 +25,7 @@ import {
   limit as firestoreLimit,
 } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification } from '@repo/shared/types';
+import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus } from '@repo/shared/types';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -178,6 +178,20 @@ export function useAdminUsers() {
   });
 }
 
+export function useToggleUserAdmin() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ uid, isAdmin }: { uid: string; isAdmin: boolean }) => {
+      await updateDoc(doc(getDb(), 'users', uid), { isAdmin });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.users });
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
+    },
+  });
+}
+
 // ─── Submissions Hooks ──────────────────────────────────────────────────────
 
 export function useAdminSubmissions() {
@@ -217,6 +231,55 @@ export function useReviewSubmission() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.submissions });
+    },
+  });
+}
+
+export function useApproveSubmission() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      submission,
+      categoryId,
+      reviewNote,
+      reviewedBy,
+    }: {
+      submission: PromptSubmission;
+      categoryId: string;
+      reviewNote: string;
+      reviewedBy: string;
+    }) => {
+      const promptRef = await addDoc(collection(getDb(), 'prompts'), {
+        text: submission.text,
+        imageUrl: submission.imageUrl || '',
+        cloudinaryPublicId: '',
+        categoryId,
+        order: 999,
+        likesCount: 0,
+        copiesCount: 0,
+        shareCount: 0,
+        tags: submission.tags,
+        isActive: true,
+        isPremium: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
+      await updateDoc(doc(getDb(), 'submissions', submission.id), {
+        status: 'approved' as SubmissionStatus,
+        reviewNote,
+        reviewedBy,
+        reviewedAt: Date.now(),
+        approvedPromptId: promptRef.id,
+      });
+
+      return promptRef.id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.submissions });
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
     },
   });
 }

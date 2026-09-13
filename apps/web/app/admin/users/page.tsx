@@ -1,12 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { updateDoc, doc } from "firebase/firestore";
-import { useQueryClient } from "@tanstack/react-query";
 import { Loader2, Shield, ShieldOff, Users as UsersIcon } from "lucide-react";
-import { getDb } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth";
-import { useAdminUsers, adminQueryKeys } from "@/lib/admin-queries";
+import { useAdminUsers, useToggleUserAdmin } from "@/lib/admin-queries";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,24 +29,11 @@ import {
 export default function UsersPage() {
   const { data: users = [], isLoading } = useAdminUsers();
   const { user: currentUser } = useAuth();
-  const queryClient = useQueryClient();
-  const [toggling, setToggling] = useState<string | null>(null);
+  const toggleAdminMutation = useToggleUserAdmin();
 
-  const toggleAdmin = async (user: { uid: string; isAdmin: boolean }) => {
-    // Prevent revoking own admin access
+  const toggleAdmin = (user: { uid: string; isAdmin: boolean }) => {
     if (user.uid === currentUser?.uid) return;
-
-    setToggling(user.uid);
-    try {
-      await updateDoc(doc(getDb(), "users", user.uid), {
-        isAdmin: !user.isAdmin,
-      });
-      await queryClient.invalidateQueries({ queryKey: adminQueryKeys.users });
-    } catch (error) {
-      console.error("Failed to toggle admin:", error);
-    } finally {
-      setToggling(null);
-    }
+    toggleAdminMutation.mutate({ uid: user.uid, isAdmin: !user.isAdmin });
   };
 
   if (isLoading) {
@@ -129,7 +112,7 @@ export default function UsersPage() {
                               variant="ghost"
                               size="sm"
                               onClick={() => toggleAdmin(user)}
-                              disabled={toggling === user.uid}
+                              disabled={toggleAdminMutation.isPending}
                               className="opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               {user.isAdmin ? (

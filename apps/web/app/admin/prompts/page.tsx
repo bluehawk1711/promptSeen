@@ -333,8 +333,8 @@ export default function PromptsPage() {
       </FadeIn>
 
       {/* Create/Edit Sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+      <Sheet open={sheetOpen} onOpenChange={(open) => { if (!open && saving) return; setSheetOpen(open) }}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto" showCloseButton={!saving}>
           <SheetHeader>
             <SheetTitle>{editingPrompt ? 'Edit Prompt' : 'Create Prompt'}</SheetTitle>
             <SheetDescription>
