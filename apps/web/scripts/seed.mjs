@@ -8,14 +8,13 @@
  *   FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY env vars (or .env.local)
  *
  * This script seeds:
- *   - 6 categories
- *   - 20 prompts with images
+ *   - 10 image generation categories
+ *   - 30 AI image generation prompts
  *   - 1 admin user
- *   - 2 sample collections
+ *   - 5 sample users
  *   - 5 submissions
  *   - 14 days of daily stats
  *   - 3 FCM tokens
- *   - 5 sample users
  *   - 5 push notifications
  *   - 1 settings document
  */
@@ -59,40 +58,73 @@ if (getApps().length > 0) {
 
 const db = getFirestore(app);
 
-// ─── Sample Categories ──────────────────────────────────────────────────────
+// ─── Categories ──────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { id: "marketing", name: "Marketing", slug: "marketing", icon: "📈", color: "#007AFF", order: 0, isActive: true, promptCount: 4 },
-  { id: "creative-writing", name: "Creative Writing", slug: "creative-writing", icon: "✍️", color: "#AF52DE", order: 1, isActive: true, promptCount: 4 },
-  { id: "coding", name: "Coding", slug: "coding", icon: "💻", color: "#34C759", order: 2, isActive: true, promptCount: 4 },
-  { id: "business", name: "Business", slug: "business", icon: "💼", color: "#FF9500", order: 3, isActive: true, promptCount: 3 },
-  { id: "social-media", name: "Social Media", slug: "social-media", icon: "📱", color: "#FF2D92", order: 4, isActive: true, promptCount: 3 },
-  { id: "education", name: "Education", slug: "education", icon: "📚", color: "#5856D6", order: 5, isActive: true, promptCount: 2 },
+  { id: "boys", name: "Boys", slug: "boys", icon: "👦", color: "#3B82F6", order: 0, isActive: true, promptCount: 3 },
+  { id: "girls", name: "Girls", slug: "girls", icon: "👧", color: "#EC4899", order: 1, isActive: true, promptCount: 3 },
+  { id: "couples", name: "Couples", slug: "couples", icon: "💑", color: "#F43F5E", order: 2, isActive: true, promptCount: 3 },
+  { id: "fantasy", name: "Fantasy", slug: "fantasy", icon: "🧙", color: "#8B5CF6", order: 3, isActive: true, promptCount: 3 },
+  { id: "anime", name: "Anime", slug: "anime", icon: "🎭", color: "#F97316", order: 4, isActive: true, promptCount: 3 },
+  { id: "nature", name: "Nature", slug: "nature", icon: "🌿", color: "#22C55E", order: 5, isActive: true, promptCount: 3 },
+  { id: "cyberpunk", name: "Cyberpunk", slug: "cyberpunk", icon: "🤖", color: "#06B6D4", order: 6, isActive: true, promptCount: 3 },
+  { id: "vintage", name: "Vintage", slug: "vintage", icon: "📸", color: "#A855F7", order: 7, isActive: true, promptCount: 3 },
+  { id: "food", name: "Food & Drinks", slug: "food-drinks", icon: "🍔", color: "#EAB308", order: 8, isActive: true, promptCount: 3 },
+  { id: "vehicles", name: "Vehicles", slug: "vehicles", icon: "🚗", color: "#EF4444", order: 9, isActive: true, promptCount: 3 },
 ];
 
-// ─── Sample Prompts ─────────────────────────────────────────────────────────
+// ─── Prompts ─────────────────────────────────────────────────────────────────
 
 const PROMPTS = [
-  { text: "Create a compelling email subject line for a Black Friday sale that increases open rates.", categoryId: "marketing", tags: ["email", "subject-line", "black-friday"], isPremium: false, order: 0 },
-  { text: "Write a 30-second elevator pitch for a SaaS product that helps small businesses automate social media.", categoryId: "marketing", tags: ["elevator-pitch", "saas", "social-media"], isPremium: false, order: 1 },
-  { text: "Generate a week-long Instagram content calendar for a fitness brand.", categoryId: "marketing", tags: ["instagram", "content-calendar", "fitness"], isPremium: true, order: 2 },
-  { text: "Create a viral LinkedIn post template about overcoming imposter syndrome in tech.", categoryId: "marketing", tags: ["linkedin", "viral", "storytelling"], isPremium: false, order: 3 },
-  { text: "Write the opening paragraph of a mystery novel set in a cyberpunk city.", categoryId: "creative-writing", tags: ["mystery", "cyberpunk", "opening"], isPremium: false, order: 4 },
-  { text: "Write a haiku collection about the four seasons.", categoryId: "creative-writing", tags: ["haiku", "poetry", "seasons"], isPremium: false, order: 5 },
-  { text: "Create a character profile for a reluctant hero in a fantasy world.", categoryId: "creative-writing", tags: ["character", "fantasy", "hero"], isPremium: true, order: 6 },
-  { text: "Write a TypeScript function that debounces any async function with configurable delay.", categoryId: "coding", tags: ["typescript", "debounce", "async"], isPremium: false, order: 7 },
-  { text: "Create a React custom hook for infinite scroll pagination with error handling.", categoryId: "coding", tags: ["react", "hook", "infinite-scroll"], isPremium: true, order: 8 },
-  { text: "Write a SQL query that finds the top 5 customers by total spend in the last 90 days.", categoryId: "coding", tags: ["sql", "analytics", "customers"], isPremium: false, order: 9 },
-  { text: "Create a Python script that validates email addresses using regex and checks MX records.", categoryId: "coding", tags: ["python", "email", "validation"], isPremium: false, order: 10 },
-  { text: "Create a one-page business plan template for a subscription-based meal planning app.", categoryId: "business", tags: ["business-plan", "subscription"], isPremium: true, order: 11 },
-  { text: "Write a professional cold outreach email for B2B SaaS sales.", categoryId: "business", tags: ["cold-email", "b2b", "sales"], isPremium: false, order: 12 },
-  { text: "Create a SWOT analysis framework for a new coffee shop.", categoryId: "business", tags: ["swot", "coffee-shop", "analysis"], isPremium: false, order: 13 },
-  { text: "Write 10 engaging TikTok video scripts for a skincare brand.", categoryId: "social-media", tags: ["tiktok", "skincare", "video-scripts"], isPremium: true, order: 14 },
-  { text: "Create a Twitter/X thread template about lessons learned from building a startup.", categoryId: "social-media", tags: ["twitter", "thread", "startup"], isPremium: false, order: 15 },
-  { text: "Write 5 Pinterest pin descriptions for a home decor brand.", categoryId: "social-media", tags: ["pinterest", "home-decor", "seo"], isPremium: false, order: 16 },
-  { text: "Create a study guide template for learning a new programming language.", categoryId: "education", tags: ["study-guide", "programming"], isPremium: false, order: 17 },
-  { text: "Write a Socratic dialogue about the ethics of artificial intelligence.", categoryId: "education", tags: ["socratic", "ai-ethics", "dialogue"], isPremium: true, order: 18 },
-  { text: "Create a quiz with 10 multiple-choice questions about world geography.", categoryId: "education", tags: ["quiz", "geography", "trivia"], isPremium: false, order: 19 },
+  // Boys
+  { text: "A young boy standing on a rooftop at sunset, wind blowing through his hair, cinematic lighting, ultra realistic, 8K, shot on Canon EOS R5", categoryId: "boys", tags: ["portrait", "sunset", "cinematic", "realistic"], isPremium: false, order: 0 },
+  { text: "Boy sitting in a cozy library surrounded by floating glowing books, magical atmosphere, fantasy art, digital painting, highly detailed", categoryId: "boys", tags: ["fantasy", "library", "glow", "magical"], isPremium: true, order: 1 },
+  { text: "Teenage boy skateboarding in an empty urban street at golden hour, motion blur, street photography style, vivid colors, 4K", categoryId: "boys", tags: ["skateboard", "urban", "golden-hour", "action"], isPremium: false, order: 2 },
+
+  // Girls
+  { text: "Portrait of a girl with flowers in her hair, soft natural light, dreamy bokeh background, fashion photography, 85mm lens, ultra sharp", categoryId: "girls", tags: ["portrait", "flowers", "bokeh", "fashion"], isPremium: false, order: 3 },
+  { text: "Girl in a flowing red dress dancing in the rain on a cobblestone street, cinematic, moody tones, reflections on wet ground, photorealistic", categoryId: "girls", tags: ["rain", "dress", "cinematic", "moody"], isPremium: true, order: 4 },
+  { text: "Young girl astronaut floating in zero gravity inside a space station, looking out at Earth, sci-fi, hyper detailed, Unreal Engine 5 render", categoryId: "girls", tags: ["astronaut", "space", "sci-fi", "zero-gravity"], isPremium: false, order: 5 },
+
+  // Couples
+  { text: "Couple walking hand in hand through a field of lavender at golden hour, backlit, romantic, soft focus, fine art photography", categoryId: "couples", tags: ["romantic", "lavender", "golden-hour", "fine-art"], isPremium: false, order: 6 },
+  { text: "Elderly couple sitting on a bench watching the sunset over the ocean, warm tones, emotional, cinematic composition, photorealistic", categoryId: "couples", tags: ["elderly", "sunset", "ocean", "emotional"], isPremium: true, order: 7 },
+  { text: "Couple dancing under a canopy of string lights at night, warm ambient glow, shallow depth of field, romantic atmosphere, 4K photography", categoryId: "couples", tags: ["dancing", "string-lights", "night", "romantic"], isPremium: false, order: 8 },
+
+  // Fantasy
+  { text: "Majestic dragon perched on a cliff edge overlooking a misty valley, dramatic lighting, epic fantasy art, detailed scales, volumetric fog", categoryId: "fantasy", tags: ["dragon", "cliff", "epic", "fog"], isPremium: true, order: 9 },
+  { text: "Enchanted forest with bioluminescent mushrooms and floating fireflies, magical atmosphere, concept art, vibrant colors, highly detailed", categoryId: "fantasy", tags: ["forest", "bioluminescent", "magical", "fireflies"], isPremium: false, order: 10 },
+  { text: "Warrior princess standing on a battlefield at dawn, glowing armor, flowing cape, epic pose, cinematic fantasy art, 8K ultra detailed", categoryId: "fantasy", tags: ["warrior", "princess", "battlefield", "epic"], isPremium: true, order: 11 },
+
+  // Anime
+  { text: "Anime girl with blue hair sitting on a crescent moon, starry night sky, Studio Ghibli style, soft pastel colors, dreamy atmosphere", categoryId: "anime", tags: ["anime", "moon", "starry", "ghibli"], isPremium: false, order: 12 },
+  { text: "Anime boy with white hair and red eyes standing in falling cherry blossoms, dynamic pose, detailed background, Makoto Shinkai style", categoryId: "anime", tags: ["anime", "cherry-blossom", "dynamic", "shinkai"], isPremium: true, order: 13 },
+  { text: "Anime mecha robot in a destroyed city, dramatic sky, battle scars, detailed mechanical parts, evangelion inspired, cinematic composition", categoryId: "anime", tags: ["mecha", "robot", "battle", "evangelion"], isPremium: false, order: 14 },
+
+  // Nature
+  { text: "Majestic waterfall cascading into a turquoise pool surrounded by lush tropical jungle, long exposure, vibrant colors, National Geographic style", categoryId: "nature", tags: ["waterfall", "tropical", "long-exposure", "vibrant"], isPremium: false, order: 15 },
+  { text: "Northern lights dancing over a frozen lake in Iceland, perfect reflection, stars visible, astrophotography, ultra wide angle, 8K", categoryId: "nature", tags: ["aurora", "iceland", "reflection", "astrophotography"], isPremium: true, order: 16 },
+  { text: "Lone oak tree in a misty meadow at sunrise, golden light rays breaking through fog, peaceful, minimalist composition, fine art landscape", categoryId: "nature", tags: ["oak-tree", "misty", "sunrise", "minimalist"], isPremium: false, order: 17 },
+
+  // Cyberpunk
+  { text: "Cyberpunk street vendor in a neon-lit alley in Tokyo, rain-soaked streets, holographic signs, blade runner aesthetic, photorealistic, 4K", categoryId: "cyberpunk", tags: ["cyberpunk", "neon", "tokyo", "rain"], isPremium: true, order: 18 },
+  { text: "Cyborg woman with glowing circuit tattoos, half face mechanical, dark moody lighting, sci-fi portrait, ultra detailed, concept art", categoryId: "cyberpunk", tags: ["cyborg", "circuit", "sci-fi", "portrait"], isPremium: false, order: 19 },
+  { text: "Futuristic city skyline at night with flying cars and massive holographic billboards, cyberpunk 2077 style, ultra wide, detailed", categoryId: "cyberpunk", tags: ["city", "flying-cars", "hologram", "futuristic"], isPremium: false, order: 20 },
+
+  // Vintage
+  { text: "Vintage 1950s diner scene, neon signs, chrome details, classic car parked outside, Kodachrome film aesthetic, warm tones, nostalgic", categoryId: "vintage", tags: ["1950s", "diner", "neon", "kodachrome"], isPremium: false, order: 21 },
+  { text: "Old man with a weathered face sitting in a rustic workshop, Rembrandt lighting, black and white, documentary photography, emotional", categoryId: "vintage", tags: ["portrait", "workshop", "rembrandt", "black-and-white"], isPremium: true, order: 22 },
+  { text: "Abandoned Victorian greenhouse overgrown with wildflowers, golden hour light streaming through broken glass, atmospheric, moody, detailed", categoryId: "vintage", tags: ["greenhouse", "abandoned", "golden-hour", "atmospheric"], isPremium: false, order: 23 },
+
+  // Food & Drinks
+  { text: "Artisan latte with intricate latte art in a ceramic cup on a wooden table, morning light, overhead shot, food photography, shallow DOF", categoryId: "food-drinks", tags: ["latte", "art", "overhead", "food-photography"], isPremium: false, order: 24 },
+  { text: "Gourmet burger with melted cheese dripping, lettuce, tomato, sesame bun, dark background, studio lighting, macro, appetizing, 4K", categoryId: "food-drinks", tags: ["burger", "gourmet", "macro", "studio-lighting"], isPremium: true, order: 25 },
+  { text: "Colorful acai bowl topped with fresh berries, granola, coconut flakes, overhead view, bright natural light, clean aesthetic, food styling", categoryId: "food-drinks", tags: ["acai", "berries", "overhead", "healthy"], isPremium: false, order: 26 },
+
+  // Vehicles
+  { text: "Classic 1967 Shelby GT500 Mustang in midnight blue, dramatic studio lighting, reflective floor, automotive photography, ultra detailed", categoryId: "vehicles", tags: ["mustang", "classic", "studio", "automotive"], isPremium: false, order: 27 },
+  { text: "Futuristic electric hypercar on a desert highway at sunset, motion blur, lens flare, sci-fi automotive concept art, cinematic", categoryId: "vehicles", tags: ["hypercar", "electric", "sunset", "concept-art"], isPremium: true, order: 28 },
+  { text: "Vintage motorcycle parked on a scenic mountain road, autumn foliage, warm tones, adventure photography, wide angle, sharp detail", categoryId: "vehicles", tags: ["motorcycle", "mountain", "autumn", "adventure"], isPremium: false, order: 29 },
 ];
 
 // ─── Seed Function ──────────────────────────────────────────────────────────
@@ -143,7 +175,6 @@ async function seed() {
 
   // Seed admin user
   console.log("👤 Seeding admin user...");
-  // Use the actual Firebase Auth UID so isAdmin() rule works
   const ADMIN_UID = "lRfHy36MNfY6Fnw73i1BA8M01W63";
   const adminRef = db.collection("users").doc(ADMIN_UID);
   batch.set(adminRef, {
@@ -170,11 +201,11 @@ async function seed() {
   // Seed submissions
   console.log("📨 Seeding submissions...");
   const submissions = [
-    { id: "sub-demo-001", submitterUid: "user-demo-001", submitterName: "John Doe", text: "Create a Twitter thread about 10 productivity hacks for remote workers.", imageUrl: "", suggestedCategoryId: "social-media", tags: ["twitter", "productivity", "remote-work"], status: "pending", reviewNote: "", reviewedBy: null, reviewedAt: null, approvedPromptId: null },
-    { id: "sub-demo-002", submitterUid: "user-demo-002", submitterName: "Jane Smith", text: "Write a LinkedIn post about the future of AI in healthcare.", imageUrl: "", suggestedCategoryId: "marketing", tags: ["linkedin", "ai", "healthcare"], status: "approved", reviewNote: "Great prompt, approved!", reviewedBy: "admin-demo-001", reviewedAt: Date.now() - 43200000, approvedPromptId: "prompt-021" },
-    { id: "sub-demo-003", submitterUid: "user-demo-003", submitterName: "Bob Wilson", text: "Buy my product at example.com", imageUrl: "", suggestedCategoryId: "marketing", tags: ["spam"], status: "rejected", reviewNote: "This is spam, not a prompt.", reviewedBy: "admin-demo-001", reviewedAt: Date.now() - 21600000, approvedPromptId: null },
-    { id: "sub-demo-004", submitterUid: "user-demo-004", submitterName: "Alice Chen", text: "Write a Python script to automate social media posting across platforms.", imageUrl: "", suggestedCategoryId: "coding", tags: ["python", "automation", "social-media"], status: "pending", reviewNote: "", reviewedBy: null, reviewedAt: null, approvedPromptId: null },
-    { id: "sub-demo-005", submitterUid: "user-demo-005", submitterName: "Charlie Brown", text: "Create a business proposal template for freelancers.", imageUrl: "", suggestedCategoryId: "business", tags: ["proposal", "freelancer", "template"], status: "pending", reviewNote: "", reviewedBy: null, reviewedAt: null, approvedPromptId: null },
+    { id: "sub-demo-001", submitterUid: "user-demo-001", submitterName: "John Doe", text: "Portrait of a samurai warrior in cyberpunk Tokyo, neon rain, detailed armor, cinematic lighting, 8K", imageUrl: "", suggestedCategoryId: "cyberpunk", tags: ["samurai", "cyberpunk", "neon", "cinematic"], status: "pending", reviewNote: "", reviewedBy: null, reviewedAt: null, approvedPromptId: null },
+    { id: "sub-demo-002", submitterUid: "user-demo-002", submitterName: "Jane Smith", text: "Underwater palace with bioluminescent coral, mermaid silhouette, ethereal glow, fantasy art, highly detailed", imageUrl: "", suggestedCategoryId: "fantasy", tags: ["underwater", "palace", "mermaid", "fantasy"], status: "approved", reviewNote: "Beautiful concept!", reviewedBy: ADMIN_UID, reviewedAt: Date.now() - 43200000, approvedPromptId: null },
+    { id: "sub-demo-003", submitterUid: "user-demo-003", submitterName: "Bob Wilson", text: "Buy followers at cheap.com", imageUrl: "", suggestedCategoryId: "boys", tags: ["spam"], status: "rejected", reviewNote: "Spam content.", reviewedBy: ADMIN_UID, reviewedAt: Date.now() - 21600000, approvedPromptId: null },
+    { id: "sub-demo-004", submitterUid: "user-demo-004", submitterName: "Alice Chen", text: "Girl in a white dress walking through a field of sunflowers, golden hour, soft focus, dreamy, fine art photography", imageUrl: "", suggestedCategoryId: "girls", tags: ["sunflowers", "golden-hour", "dreamy", "fine-art"], status: "pending", reviewNote: "", reviewedBy: null, reviewedAt: null, approvedPromptId: null },
+    { id: "sub-demo-005", submitterUid: "user-demo-005", submitterName: "Charlie Brown", text: "Retro spaceship interior, analog controls, worn metal, sci-fi vintage, detailed, cinematic lighting", imageUrl: "", suggestedCategoryId: "vintage", tags: ["spaceship", "retro", "sci-fi", "vintage"], status: "pending", reviewNote: "", reviewedBy: null, reviewedAt: null, approvedPromptId: null },
   ];
   for (const sub of submissions) {
     const ref = db.collection("submissions").doc(sub.id);
@@ -200,7 +231,7 @@ async function seed() {
       submissions: Math.floor(Math.random() * 5),
       newUsers: 2 + Math.floor(Math.random() * 8),
       topPromptIds: ["prompt-001", "prompt-005", "prompt-008"],
-      topCategoryIds: ["marketing", "coding"],
+      topCategoryIds: ["boys", "fantasy", "cyberpunk"],
       createdAt: d.getTime(),
     });
   }
@@ -220,11 +251,11 @@ async function seed() {
   // Seed push notifications
   console.log("🔔 Seeding push notifications...");
   const notifications = [
-    { id: "notif-demo-001", title: "Welcome to TS Prompt! 🎉", body: "Discover thousands of curated AI prompts for marketing, coding, and more.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: ADMIN_UID, source: "manual", promptId: null },
-    { id: "notif-demo-002", title: "New Marketing Prompts ✨", body: "Check out 5 new prompts for your next campaign.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: ADMIN_UID, source: "auto", promptId: "prompt-001" },
-    { id: "notif-demo-003", title: "🔥 Trending: Coding Prompts", body: "These coding prompts are getting 3x more copies this week.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 4, openedCount: 2, sentBy: ADMIN_UID, source: "manual", promptId: null },
-    { id: "notif-demo-004", title: "New Creative Writing Prompts", body: "Unleash your creativity with 8 new writing prompts.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: ADMIN_UID, source: "auto", promptId: "prompt-005" },
-    { id: "notif-demo-005", title: "Weekly Digest 📊", body: "Your app got 1,250 prompt views this week. Keep it up!", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: ADMIN_UID, source: "manual", promptId: null },
+    { id: "notif-demo-001", title: "Welcome to TS Prompt! 🎉", body: "Discover thousands of AI image generation prompts for Midjourney, DALL-E, and more.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: ADMIN_UID, source: "manual", promptId: null },
+    { id: "notif-demo-002", title: "New Fantasy Prompts ✨", body: "Check out 3 new dragon and warrior prompts for your next generation.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: ADMIN_UID, source: "auto", promptId: "prompt-010" },
+    { id: "notif-demo-003", title: "🔥 Trending: Cyberpunk Art", body: "Cyberpunk prompts are getting 3x more copies this week.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 4, openedCount: 2, sentBy: ADMIN_UID, source: "manual", promptId: null },
+    { id: "notif-demo-004", title: "New Anime Prompts 🎭", body: "Studio Ghibli and Makoto Shinkai inspired prompts just dropped.", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 3, sentBy: ADMIN_UID, source: "auto", promptId: "prompt-013" },
+    { id: "notif-demo-005", title: "Weekly Digest 📊", body: "Your app got 1,250 prompt views this week. Keep generating!", imageUrl: "", target: "all", sentCount: 5, deliveredCount: 5, openedCount: 4, sentBy: ADMIN_UID, source: "manual", promptId: null },
   ];
   for (let i = 0; i < notifications.length; i++) {
     const ref = db.collection("push_notifications").doc(notifications[i].id);
