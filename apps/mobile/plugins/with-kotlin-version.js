@@ -2,7 +2,7 @@ const { withDangerousMod } = require("expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
 
-const KOTLIN_VERSION = "2.3.21";
+const KOTLIN_VERSION = "2.3.20";
 
 function withKotlinClasspath(config) {
   return withDangerousMod(config, [
