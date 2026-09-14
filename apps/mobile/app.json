@@ -32,6 +32,13 @@
       "expo-dev-client",
       "./plugins/with-kotlin-version",
       [
+        "react-native-google-mobile-ads",
+        {
+          "android_app_id": "ca-app-pub-3940256099942544~3347511713",
+          "ios_app_id": "ca-app-pub-3940256099942544~1458001516"
+        }
+      ],
+      [
         "expo-updates",
         {
           "url": "https://u.expo.dev/promptgallery"

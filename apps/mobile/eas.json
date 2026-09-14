@@ -8,22 +8,6 @@
       "developmentClient": true,
       "distribution": "internal",
       "channel": "development",
-      "env": {
-        "EXPO_PUBLIC_FIREBASE_USE_EMULATOR": "1"
-      }
-    },
-    "preview": {
-      "distribution": "internal",
-      "channel": "preview"
-    },
-    "production": {
-      "autoIncrement": true,
-      "channel": "production"
-    },
-    "dev-apk": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "channel": "development",
       "android": {
         "buildType": "apk"
       },
@@ -31,7 +15,7 @@
         "EXPO_PUBLIC_FIREBASE_USE_EMULATOR": "1"
       }
     },
-    "release-apk": {
+    "release": {
       "distribution": "internal",
       "channel": "production",
       "android": {
