@@ -127,7 +127,7 @@ export default function PromptsPage() {
     setFormText(prompt.text)
     setFormImageUrl(prompt.imageUrl)
     setFormCloudinaryId(prompt.cloudinaryPublicId)
-    setFormCategoryIds(prompt.categoryId ? [prompt.categoryId] : [])
+    setFormCategoryIds(prompt.categoryIds ?? [])
     setFormOrder(String(prompt.order))
     setFormTags(prompt.tags.join(', '))
     setFormIsActive(prompt.isActive)
@@ -159,12 +159,11 @@ export default function PromptsPage() {
       if (!formText.trim() || !imageUrl) return
 
       // Step 2: Save prompt to Firestore
-      const primaryCategoryId = formCategoryIds[0] ?? ''
       const data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'> = {
         text: formText,
         imageUrl,
         cloudinaryPublicId,
-        categoryId: primaryCategoryId,
+        categoryIds: formCategoryIds,
         order: Number(formOrder),
         likesCount: editingPrompt?.likesCount ?? 0,
         copiesCount: editingPrompt?.copiesCount ?? 0,
@@ -203,7 +202,7 @@ export default function PromptsPage() {
           const settings = settingsRes.ok ? await settingsRes.json() : null
           const autoNotify = settings?.autoNotifyNewPrompt ?? true
           if (autoNotify) {
-            const categoryName = categories.find((c) => c.id === primaryCategoryId)?.name ?? 'New'
+            const categoryName = getCategoryNames(formCategoryIds) || 'New'
             await notifyNewPrompt(getDb(), newId, formText, categoryName, imageUrl, 'admin')
           }
         } catch (err) {
@@ -239,6 +238,9 @@ export default function PromptsPage() {
 
   const getCategoryName = (categoryId: string) =>
     categories.find((c) => c.id === categoryId)?.name ?? 'Unknown'
+
+  const getCategoryNames = (categoryIds: string[]) =>
+    categoryIds.map((id) => getCategoryName(id)).join(', ') || 'None'
 
   const filteredPrompts = prompts.filter(
     (p) =>
@@ -325,7 +327,14 @@ export default function PromptsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{getCategoryName(prompt.categoryId)}</Badge>
+                      <div className="flex gap-1 flex-wrap">
+                        {prompt.categoryIds?.slice(0, 3).map((catId) => (
+                          <Badge key={catId} variant="outline" className="text-xs">{getCategoryName(catId)}</Badge>
+                        ))}
+                        {(prompt.categoryIds?.length ?? 0) > 3 && (
+                          <Badge variant="secondary" className="text-xs">+{prompt.categoryIds.length - 3}</Badge>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground">

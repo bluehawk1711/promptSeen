@@ -183,8 +183,10 @@ async function seed() {
   // Update prompt counts on categories
   const categoryPromptCounts = {};
   for (const prompt of PROMPTS) {
-    categoryPromptCounts[prompt.categoryId] =
-      (categoryPromptCounts[prompt.categoryId] || 0) + 1;
+    const catIds = Array.isArray(prompt.categoryIds) ? prompt.categoryIds : (prompt.categoryId ? [prompt.categoryId] : []);
+    for (const catId of catIds) {
+      categoryPromptCounts[catId] = (categoryPromptCounts[catId] || 0) + 1;
+    }
   }
   for (const [catId, count] of Object.entries(categoryPromptCounts)) {
     await setDoc(doc(db, "categories", catId), { promptCount: count }, { merge: true });
@@ -199,6 +201,7 @@ async function seed() {
 
     await setDoc(doc(db, "prompts", id), {
       ...prompt,
+      categoryIds: [prompt.categoryId],
       imageUrl,
       cloudinaryPublicId: "",
       likesCount: Math.floor(Math.random() * 500),

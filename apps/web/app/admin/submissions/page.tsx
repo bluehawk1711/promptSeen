@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { MultiSelect, MultiSelectTrigger, MultiSelectValue, MultiSelectContent, MultiSelectList, MultiSelectItem } from '@/components/motion/multi-select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAdminSubmissions, useAdminCategories, useReviewSubmission, useApproveSubmission } from '@/lib/admin-queries'
@@ -37,21 +37,21 @@ export default function SubmissionsPage() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending')
   const [reviewSheet, setReviewSheet] = useState<PromptSubmission | null>(null)
   const [reviewNote, setReviewNote] = useState('')
-  const [categoryId, setCategoryId] = useState('')
+  const [categoryIds, setCategoryIds] = useState<string[]>([])
 
   const isProcessing = reviewMutation.isPending || approveMutation.isPending
 
   const openReview = (submission: PromptSubmission) => {
     setReviewSheet(submission)
     setReviewNote('')
-    setCategoryId(submission.suggestedCategoryId || categories[0]?.id || '')
+    setCategoryIds(submission.suggestedCategoryId ? [submission.suggestedCategoryId] : [categories[0]?.id].filter(Boolean))
   }
 
   const handleApprove = async () => {
     if (!reviewSheet) return
     await approveMutation.mutateAsync({
       submission: reviewSheet,
-      categoryId,
+      categoryIds,
       reviewNote,
       reviewedBy: 'admin',
     })
@@ -234,15 +234,19 @@ export default function SubmissionsPage() {
               </p>
 
               <div className="flex flex-col gap-2">
-                <Label>Assign Category</Label>
-                <Select value={categoryId} onValueChange={(v) => setCategoryId(v ?? '')}>
-                  <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Assign Categories</Label>
+                <MultiSelect value={categoryIds} onValueChange={(v) => setCategoryIds(v)}>
+                  <MultiSelectTrigger>
+                    <MultiSelectValue placeholder="Select categories" />
+                  </MultiSelectTrigger>
+                  <MultiSelectContent>
+                    <MultiSelectList>
+                      {categories.map((cat) => (
+                        <MultiSelectItem key={cat.id} value={cat.id}>{cat.name}</MultiSelectItem>
+                      ))}
+                    </MultiSelectList>
+                  </MultiSelectContent>
+                </MultiSelect>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -256,7 +260,7 @@ export default function SubmissionsPage() {
             <Button variant="outline" onClick={handleReject} disabled={isProcessing}>
               <XCircle size={14} className="mr-1" /> Reject
             </Button>
-            <Button onClick={handleApprove} disabled={isProcessing || !categoryId} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={handleApprove} disabled={isProcessing || categoryIds.length === 0} className="bg-green-600 hover:bg-green-700">
               {(approveMutation.isPending) && <Loader2 size={14} className="mr-1 animate-spin" />}
               <CheckCircle size={14} className="mr-1" /> Approve & Publish
             </Button>

@@ -52,7 +52,7 @@ export default function HomeScreen() {
 
   const dailyCategory = useMemo(() => {
     if (!dailyPrompt) return null;
-    return categories.find((c) => c.id === dailyPrompt.categoryId);
+    return categories.find((c) => c.id === dailyPrompt.categoryIds?.[0]);
   }, [dailyPrompt, categories]);
 
   // Trending prompts — top 10 by weighted engagement score
@@ -96,7 +96,7 @@ export default function HomeScreen() {
     if (selectedCategory) {
       const category = categories.find((c) => c.slug === selectedCategory);
       if (category) {
-        result = result.filter((p) => p.categoryId === category.id);
+        result = result.filter((p) => p.categoryIds?.includes(category.id));
       }
     }
 

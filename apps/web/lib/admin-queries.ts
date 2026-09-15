@@ -25,7 +25,7 @@ import {
   limit as firestoreLimit,
 } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus } from '@repo/shared/types';
+import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus, DailyStats } from '@repo/shared/types';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -241,12 +241,12 @@ export function useApproveSubmission() {
   return useMutation({
     mutationFn: async ({
       submission,
-      categoryId,
+      categoryIds,
       reviewNote,
       reviewedBy,
     }: {
       submission: PromptSubmission;
-      categoryId: string;
+      categoryIds: string[];
       reviewNote: string;
       reviewedBy: string;
     }) => {
@@ -254,7 +254,7 @@ export function useApproveSubmission() {
         text: submission.text,
         imageUrl: submission.imageUrl || '',
         cloudinaryPublicId: '',
-        categoryId,
+        categoryIds,
         order: 999,
         likesCount: 0,
         copiesCount: 0,
@@ -368,6 +368,34 @@ export function useAdminStats() {
         pendingSubmissions: submissions.filter((s) => s.status === 'pending').length,
         totalSubmissions: submissions.length,
       };
+    },
+    staleTime: 2.5 * 60 * 1000,
+  });
+}
+
+// ─── Analytics Hooks ──────────────────────────────────────────────────────────
+
+export function useAdminDailyStats(days = 30) {
+  return useQuery({
+    queryKey: [...adminQueryKeys.stats, 'daily', days],
+    queryFn: async () => {
+      const snap = await getDocs(
+        query(collection(getDb(), 'daily_stats'), orderBy('date', 'desc'), firestoreLimit(days))
+      );
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as DailyStats));
+    },
+    staleTime: 2.5 * 60 * 1000,
+  });
+}
+
+export function useAdminTopPrompts(limit = 10) {
+  return useQuery({
+    queryKey: [...adminQueryKeys.stats, 'top-prompts', limit],
+    queryFn: async () => {
+      const snap = await getDocs(
+        query(collection(getDb(), 'prompts'), orderBy('likesCount', 'desc'), firestoreLimit(limit))
+      );
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Prompt));
     },
     staleTime: 2.5 * 60 * 1000,
   });

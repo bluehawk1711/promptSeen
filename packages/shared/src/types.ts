@@ -27,8 +27,8 @@ export interface Prompt {
   imageUrl: string;
   /** Cloudinary public_id for management (delete, transform). */
   cloudinaryPublicId: string;
-  /** Reference to the category this prompt belongs to. */
-  categoryId: string;
+  /** References to the categories this prompt belongs to. */
+  categoryIds: string[];
   /** Display order within the category. */
   order: number;
   /** Number of times this prompt has been liked. */

@@ -56,7 +56,7 @@ export const usePromptsStore = create<PromptsState>((set, get) => ({
 
   getPromptsByCategory: (categoryId) =>
     get().prompts.filter(
-      (p) => p.categoryId === categoryId && p.isActive
+      (p) => p.categoryIds?.includes(categoryId) && p.isActive
     ),
 
   getPromptById: (id) =>

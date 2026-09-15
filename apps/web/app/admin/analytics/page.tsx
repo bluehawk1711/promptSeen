@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useState } from 'react'
 import { TrendingUp, Eye, Heart, Copy, Share2, Users, Calendar } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,35 +15,16 @@ import {
   AnimatedTableRow,
   LoadingDots,
 } from '@/components/motion/motion-components'
+import { useAdminDailyStats, useAdminTopPrompts } from '@/lib/admin-queries'
 
 export default function AnalyticsPage() {
-  const [dailyStats, setDailyStats] = useState<DailyStats[]>([])
-  const [topPrompts, setTopPrompts] = useState<Prompt[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [dateRange, setDateRange] = useState<7 | 30>(7)
 
-  const fetchData = useCallback(async () => {
-    try {
-      setError(null)
-      const response = await fetch('/api/analytics?limit=30&topPrompts=10')
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to fetch analytics')
-      }
-      const data = await response.json()
-      setDailyStats(data.dailyStats ?? [])
-      setTopPrompts(data.topPrompts ?? [])
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to fetch analytics'
-      console.error('Failed to fetch analytics:', message)
-      setError(message)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+  const { data: dailyStats = [], isLoading: loadingDaily, error: errorDaily } = useAdminDailyStats(30)
+  const { data: topPrompts = [], isLoading: loadingTop, error: errorTop } = useAdminTopPrompts(10)
 
-  useEffect(() => { fetchData() }, [fetchData])
+  const loading = loadingDaily || loadingTop
+  const error = errorDaily?.message || errorTop?.message || null
 
   const recentStats = dailyStats.slice(0, dateRange)
   const totals = recentStats.reduce(
@@ -90,14 +71,12 @@ export default function AnalyticsPage() {
         </div>
       </FadeIn>
 
-      {/* Error */}
       {error && (
         <div className="rounded-xl bg-destructive/10 p-4 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      {/* Stat Cards — properly wrapped in Card */}
       <StaggerContainer className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {metricCards.map((stat) => {
           const Icon = stat.icon

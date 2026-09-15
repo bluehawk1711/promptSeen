@@ -129,7 +129,7 @@ export function useRelatedPromptsQuery(categoryId: string, excludeId: string) {
       if (pageParam) {
         q = query(
           collection(db, 'prompts'),
-          where('categoryId', '==', categoryId),
+          where('categoryIds', 'array-contains', categoryId),
           where('isActive', '==', true),
           orderBy('order', 'asc'),
           startAfter(pageParam),
@@ -138,7 +138,7 @@ export function useRelatedPromptsQuery(categoryId: string, excludeId: string) {
       } else {
         q = query(
           collection(db, 'prompts'),
-          where('categoryId', '==', categoryId),
+          where('categoryIds', 'array-contains', categoryId),
           where('isActive', '==', true),
           orderBy('order', 'asc'),
           firestoreLimit(PAGE_SIZE)

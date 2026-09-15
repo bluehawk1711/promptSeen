@@ -69,7 +69,7 @@ export default function PromptDetailScreen() {
   const prompt = prompts.find((p) => p.id === id);
   const isLiked = prompt ? likedIds.includes(prompt.id) : false;
   const isPremiumLocked = prompt?.isPremium && !isUnlocked(prompt.id);
-  const category = prompt ? getCategoryById(prompt.categoryId) : null;
+  const category = prompt ? getCategoryById(prompt.categoryIds?.[0]) : null;
 
   // Track prompt view on mount
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function PromptDetailScreen() {
     isFetchingNextPage,
     isLoading: relatedLoading,
   } = useRelatedPromptsQuery(
-    prompt?.categoryId ?? '',
+    prompt?.categoryIds?.[0] ?? '',
     prompt?.id ?? ''
   );
 
@@ -433,7 +433,7 @@ export default function PromptDetailScreen() {
 
             <View style={styles.moreGrid}>
               {morePrompts.map((rp, i) => {
-                const rpCategory = getCategoryById(rp.categoryId);
+                const rpCategory = getCategoryById(rp.categoryIds?.[0]);
                 return (
                   <TouchableOpacity
                     key={rp.id}

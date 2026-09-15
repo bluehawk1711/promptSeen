@@ -175,8 +175,10 @@ async function seed() {
     const imageUrl = `https://picsum.photos/seed/${id}/1080/1350`;
 
     const ref = db.collection("prompts").doc(id);
+    const { categoryId, ...rest } = prompt;
     batch.set(ref, {
-      ...prompt,
+      ...rest,
+      categoryIds: [categoryId],
       imageUrl,
       cloudinaryPublicId: "",
       likesCount: Math.floor(Math.random() * 500) + 10,
