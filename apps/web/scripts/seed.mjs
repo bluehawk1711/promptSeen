@@ -75,9 +75,24 @@ const CATEGORIES = [
 
 // ─── Prompts ─────────────────────────────────────────────────────────────────
 
+/**
+ * Sample prompt video (YouTube).
+ *
+ * Mirrors the shape produced by `@repo/shared/video` — the seed script is plain
+ * Node so it builds the record inline instead of importing the TS module.
+ * Replace these ids with real content videos before shipping.
+ */
+const SAMPLE_YOUTUBE_VIDEO = (youtubeId) => ({
+  type: "youtube",
+  url: `https://www.youtube.com/watch?v=${youtubeId}`,
+  publicId: "",
+  youtubeId,
+  thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
+});
+
 const PROMPTS = [
   // Boys
-  { text: "A young boy standing on a rooftop at sunset, wind blowing through his hair, cinematic lighting, ultra realistic, 8K, shot on Canon EOS R5", categoryId: "boys", tags: ["portrait", "sunset", "cinematic", "realistic"], isPremium: false, order: 0 },
+  { text: "A young boy standing on a rooftop at sunset, wind blowing through his hair, cinematic lighting, ultra realistic, 8K, shot on Canon EOS R5", categoryId: "boys", tags: ["portrait", "sunset", "cinematic", "realistic"], isPremium: false, order: 0, video: SAMPLE_YOUTUBE_VIDEO("aqz-KE-bpKQ") },
   { text: "Boy sitting in a cozy library surrounded by floating glowing books, magical atmosphere, fantasy art, digital painting, highly detailed", categoryId: "boys", tags: ["fantasy", "library", "glow", "magical"], isPremium: true, order: 1 },
   { text: "Teenage boy skateboarding in an empty urban street at golden hour, motion blur, street photography style, vivid colors, 4K", categoryId: "boys", tags: ["skateboard", "urban", "golden-hour", "action"], isPremium: false, order: 2 },
 
@@ -87,7 +102,7 @@ const PROMPTS = [
   { text: "Young girl astronaut floating in zero gravity inside a space station, looking out at Earth, sci-fi, hyper detailed, Unreal Engine 5 render", categoryId: "girls", tags: ["astronaut", "space", "sci-fi", "zero-gravity"], isPremium: false, order: 5 },
 
   // Couples
-  { text: "Couple walking hand in hand through a field of lavender at golden hour, backlit, romantic, soft focus, fine art photography", categoryId: "couples", tags: ["romantic", "lavender", "golden-hour", "fine-art"], isPremium: false, order: 6 },
+  { text: "Couple walking hand in hand through a field of lavender at golden hour, backlit, romantic, soft focus, fine art photography", categoryId: "couples", tags: ["romantic", "lavender", "golden-hour", "fine-art"], isPremium: false, order: 6, video: SAMPLE_YOUTUBE_VIDEO("jNQXAC9IVRw") },
   { text: "Elderly couple sitting on a bench watching the sunset over the ocean, warm tones, emotional, cinematic composition, photorealistic", categoryId: "couples", tags: ["elderly", "sunset", "ocean", "emotional"], isPremium: true, order: 7 },
   { text: "Couple dancing under a canopy of string lights at night, warm ambient glow, shallow depth of field, romantic atmosphere, 4K photography", categoryId: "couples", tags: ["dancing", "string-lights", "night", "romantic"], isPremium: false, order: 8 },
 
@@ -97,7 +112,7 @@ const PROMPTS = [
   { text: "Warrior princess standing on a battlefield at dawn, glowing armor, flowing cape, epic pose, cinematic fantasy art, 8K ultra detailed", categoryId: "fantasy", tags: ["warrior", "princess", "battlefield", "epic"], isPremium: true, order: 11 },
 
   // Anime
-  { text: "Anime girl with blue hair sitting on a crescent moon, starry night sky, Studio Ghibli style, soft pastel colors, dreamy atmosphere", categoryId: "anime", tags: ["anime", "moon", "starry", "ghibli"], isPremium: false, order: 12 },
+  { text: "Anime girl with blue hair sitting on a crescent moon, starry night sky, Studio Ghibli style, soft pastel colors, dreamy atmosphere", categoryId: "anime", tags: ["anime", "moon", "starry", "ghibli"], isPremium: false, order: 12, video: SAMPLE_YOUTUBE_VIDEO("aqz-KE-bpKQ") },
   { text: "Anime boy with white hair and red eyes standing in falling cherry blossoms, dynamic pose, detailed background, Makoto Shinkai style", categoryId: "anime", tags: ["anime", "cherry-blossom", "dynamic", "shinkai"], isPremium: true, order: 13 },
   { text: "Anime mecha robot in a destroyed city, dramatic sky, battle scars, detailed mechanical parts, evangelion inspired, cinematic composition", categoryId: "anime", tags: ["mecha", "robot", "battle", "evangelion"], isPremium: false, order: 14 },
 

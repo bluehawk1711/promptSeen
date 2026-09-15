@@ -152,7 +152,14 @@
 - **Validation** — File type and size checks
 - **Compression** — Canvas API resize to 1080x1350, JPEG 82%
 - **Cloudinary Upload** — unsigned preset with progress tracking
-- **Delete API** — Signed server-side deletion route
+- **Delete API** — Signed server-side deletion route (`image` or `video` resource type)
+
+### Video Support
+- **Prompt videos** — Optional per-prompt video: Cloudinary MP4 upload (max 100 MB) or YouTube link
+- **Admin Editor** — `VideoUpload` component with none / upload / YouTube modes, progress, preview, discard-cleanup
+- **Mobile Playback** — WebView player on prompt detail (YouTube embed + HTML5 MP4), premium-gated via reward ad
+- **Badges** — `VIDEO` badge on cards and detail hero when a prompt has a video
+- **Lifecycle** — Old Cloudinary video deleted only after a successful save (orphan-safe)
 
 ---
 
@@ -165,6 +172,7 @@
 - `PushNotification`, `NotificationAnalytics`, `NotificationPreferences`
 - `AnalyticsEvent`, `AnalyticsEventType`, `DailyStats`
 - `CloudinaryUploadResult`, `BackupData`
+- `PromptVideo`, `PromptVideoType` — optional video payload on `Prompt`
 
 ### Firebase
 - `initFirebase()` — Platform-agnostic initialization with emulator support
@@ -177,6 +185,16 @@
 - `compressImage()` — Canvas-based resize
 - `validateImageFile()` — Type/size validation
 - `getCloudinaryUrl()` — URL with transforms
+
+### Video
+- `uploadVideoPipeline()` — Validate → upload MP4 to Cloudinary (H.264 delivery)
+- `validateVideoFile()` — Type/size validation (max 100 MB)
+- `parseYouTubeId()` — Extract video ID from any YouTube URL shape (regex, RN-safe)
+- `createYouTubeVideo()` / `createUploadedVideo()` — Build `PromptVideo` payloads
+- `getYouTubeEmbedUrl()` / `getCloudinaryVideoUrl()` / `getCloudinaryVideoThumbnailUrl()`
+- `hasPlayableVideo()` — Guard for UI playback affordances
+- `isPromptVideo()` — Runtime type guard
+- `formatVideoDuration()` — Human-readable duration
 
 ### Backup
 - `exportFirestoreData()` — Dump all collections

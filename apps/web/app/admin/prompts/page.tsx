@@ -15,6 +15,7 @@ import {
   Heart,
   Share2,
   MoreHorizontal,
+  Video,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,6 +56,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { MultiSelect, MultiSelectTrigger, MultiSelectValue, MultiSelectContent, MultiSelectList, MultiSelectItem } from '@/components/motion/multi-select'
 import { ImageUpload, type ImageUploadHandle } from '@/components/image-upload'
+import { VideoUpload } from '@/components/video-upload'
 import { notifyNewPrompt } from '@/lib/notifications'
 import { getDb } from '@/lib/firebase'
 import {
@@ -65,7 +67,7 @@ import {
   useAdminCategories,
 } from '@/lib/admin-queries'
 import { useToast } from '@/lib/use-toast'
-import type { Prompt } from '@repo/shared/types'
+import type { Prompt, PromptVideo } from '@repo/shared/types'
 import {
   PageTransition,
   FadeIn,
@@ -98,7 +100,9 @@ export default function PromptsPage() {
   const [formTags, setFormTags] = useState('')
   const [formIsActive, setFormIsActive] = useState(true)
   const [formIsPremium, setFormIsPremium] = useState(false)
+  const [formVideo, setFormVideo] = useState<PromptVideo | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [hasPendingImage, setHasPendingImage] = useState(false)
   const [saving, setSaving] = useState(false)
   const imageUploadRef = useRef<ImageUploadHandle>(null)
 
@@ -112,7 +116,9 @@ export default function PromptsPage() {
     setFormTags('')
     setFormIsActive(true)
     setFormIsPremium(false)
+    setFormVideo(null)
     setUploadError(null)
+    setHasPendingImage(false)
     setSheetOpen(true)
   }
 
@@ -126,28 +132,38 @@ export default function PromptsPage() {
     setFormTags(prompt.tags.join(', '))
     setFormIsActive(prompt.isActive)
     setFormIsPremium(prompt.isPremium)
+    setFormVideo(prompt.video ?? null)
     setUploadError(null)
+    setHasPendingImage(false)
     setSheetOpen(true)
   }
 
   const handleSave = async () => {
     setSaving(true)
     try {
-      // Step 1: Upload image to Cloudinary if there's a pending upload
+      // Step 1: Upload the pending image to Cloudinary (deferred until save)
+      let imageUrl = formImageUrl
+      let cloudinaryPublicId = formCloudinaryId
+
       if (imageUploadRef.current?.hasPendingUpload()) {
         const uploaded = await imageUploadRef.current.upload()
         if (!uploaded) {
-          setSaving(false)
-          return // Upload failed, error shown in ImageUpload
+          return // Upload failed — the error is shown inside ImageUpload
         }
+        imageUrl = uploaded.imageUrl
+        cloudinaryPublicId = uploaded.publicId
+        setFormImageUrl(imageUrl)
+        setFormCloudinaryId(cloudinaryPublicId)
       }
+
+      if (!formText.trim() || !imageUrl) return
 
       // Step 2: Save prompt to Firestore
       const primaryCategoryId = formCategoryIds[0] ?? ''
       const data: Omit<Prompt, 'id' | 'createdAt' | 'updatedAt'> = {
         text: formText,
-        imageUrl: formImageUrl,
-        cloudinaryPublicId: formCloudinaryId,
+        imageUrl,
+        cloudinaryPublicId,
         categoryId: primaryCategoryId,
         order: Number(formOrder),
         likesCount: editingPrompt?.likesCount ?? 0,
@@ -156,10 +172,28 @@ export default function PromptsPage() {
         tags: formTags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean),
         isActive: formIsActive,
         isPremium: formIsPremium,
+        video: formVideo,
       }
 
       if (editingPrompt) {
         await updatePrompt.mutateAsync({ id: editingPrompt.id, data })
+
+        // The video was replaced or removed — clean up the previous asset.
+        const previousPublicId =
+          editingPrompt.video?.type === 'upload' ? editingPrompt.video.publicId : ''
+        const nextPublicId = formVideo?.type === 'upload' ? formVideo.publicId : ''
+        if (previousPublicId && previousPublicId !== nextPublicId) {
+          try {
+            await fetch('/api/cloudinary/delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ publicId: previousPublicId, resourceType: 'video' }),
+            })
+          } catch {
+            console.warn('Failed to delete replaced video from Cloudinary')
+          }
+        }
+
         toast.success('Prompt updated', 'The prompt has been saved.')
       } else {
         const newId = await createPrompt.mutateAsync(data)
@@ -170,13 +204,16 @@ export default function PromptsPage() {
           const autoNotify = settings?.autoNotifyNewPrompt ?? true
           if (autoNotify) {
             const categoryName = categories.find((c) => c.id === primaryCategoryId)?.name ?? 'New'
-            await notifyNewPrompt(getDb(), newId, formText, categoryName, formImageUrl, 'admin')
+            await notifyNewPrompt(getDb(), newId, formText, categoryName, imageUrl, 'admin')
           }
         } catch (err) {
           console.warn('Failed to send auto-notification:', err)
         }
       }
       setSheetOpen(false)
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Please try again.'
+      toast.error('Could not save prompt', message)
     } finally {
       setSaving(false)
     }
@@ -307,6 +344,15 @@ export default function PromptsPage() {
                         {prompt.isPremium && (
                           <Star size={14} className="text-yellow-500 fill-yellow-500" />
                         )}
+                        {prompt.video && (
+                          <Video
+                            size={14}
+                            className="text-primary"
+                            aria-label={
+                              prompt.video.type === 'youtube' ? 'YouTube video' : 'Uploaded video'
+                            }
+                          />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
@@ -351,11 +397,25 @@ export default function PromptsPage() {
                 currentPublicId={editingPrompt?.cloudinaryPublicId}
                 onUploadComplete={(data) => { setFormImageUrl(data.imageUrl); setFormCloudinaryId(data.publicId) }}
                 onRemove={() => { setFormImageUrl(''); setFormCloudinaryId('') }}
+                onPendingChange={setHasPendingImage}
                 onError={setUploadError}
                 cloudName={CLOUD_NAME}
                 uploadPreset={UPLOAD_PRESET}
               />
               {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label>Video (optional)</Label>
+              <VideoUpload
+                value={formVideo}
+                onChange={setFormVideo}
+                savedPublicId={editingPrompt?.video?.publicId ?? ''}
+                cloudName={CLOUD_NAME}
+                uploadPreset={UPLOAD_PRESET}
+                disabled={saving}
+                onError={setUploadError}
+              />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -401,9 +461,12 @@ export default function PromptsPage() {
 
           <SheetFooter>
             <Button variant="outline" onClick={() => setSheetOpen(false)} disabled={saving}>Cancel</Button>
-            <Button onClick={handleSave} disabled={saving || !formText || !formImageUrl}>
+            <Button
+              onClick={handleSave}
+              disabled={saving || !formText.trim() || (!formImageUrl && !hasPendingImage)}
+            >
               {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
-              {saving ? 'Uploading...' : editingPrompt ? 'Save Changes' : 'Create Prompt'}
+              {saving ? 'Saving...' : editingPrompt ? 'Save Changes' : 'Create Prompt'}
             </Button>
           </SheetFooter>
         </SheetContent>

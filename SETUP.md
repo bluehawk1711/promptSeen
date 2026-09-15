@@ -489,6 +489,26 @@ import {
 } from '@repo/shared/cloudinary';
 ```
 
+### `@repo/shared/video`
+
+```typescript
+import {
+  validateVideoFile,            // (file: File) => ValidationError | null — type/size (max 100MB)
+  parseYouTubeId,               // (input: string) => string | null — watch/embed/shorts/youtu.be/nocookie/bare ID
+  createYouTubeVideo,           // (link: string) => PromptVideo | null — builder from a YouTube URL
+  createUploadedVideo,          // (result: CloudinaryUploadResult) => PromptVideo — builder from upload
+  getYouTubeEmbedUrl,           // (videoId) => string — embeddable player URL
+  getCloudinaryVideoUrl,        // (cloudName, publicId) => string — MP4 delivery (q_auto:good, vc_h264)
+  getCloudinaryVideoThumbnailUrl, // (cloudName, publicId) => string — poster frame
+  getYouTubeThumbnailUrl,       // (videoId) => string — YouTube poster
+  getPromptVideoThumbnail,      // (video, cloudName) => string — poster for either video type
+  isPromptVideo,                // (value: unknown) => value is PromptVideo — runtime guard
+  hasPlayableVideo,             // (prompt: Prompt) => boolean
+  formatVideoDuration,          // (seconds: number) => string — m:ss
+  uploadVideoPipeline,          // (file, options) => Promise<VideoUploadResult> — validate + upload
+} from '@repo/shared/video';
+```
+
 ### `@repo/shared/analytics`
 
 ```typescript

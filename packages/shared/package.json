@@ -38,6 +38,10 @@
       "types": "./dist/cloudinary.d.ts",
       "import": "./dist/cloudinary.js"
     },
+    "./video": {
+      "types": "./dist/video.d.ts",
+      "import": "./dist/video.js"
+    },
     "./backup": {
       "types": "./dist/backup.d.ts",
       "import": "./dist/backup.js"

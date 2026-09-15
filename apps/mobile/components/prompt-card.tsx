@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Copy, Star } from 'lucide-react-native';
+import { Heart, Copy, Star, Play } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -94,6 +94,14 @@ export const PromptCard = memo(function PromptCard({
             <View style={styles.premiumBadge}>
               <Star size={10} color="#000" fill="#000" />
               <Text style={styles.premiumText}>PRO</Text>
+            </View>
+          )}
+
+          {/* Video badge */}
+          {prompt.video && (
+            <View style={styles.videoBadge}>
+              <Play size={9} color="#fff" fill="#fff" />
+              <Text style={styles.videoBadgeText}>VIDEO</Text>
             </View>
           )}
 
@@ -220,6 +228,26 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#fff',
     fontWeight: '600',
+  },
+  videoBadge: {
+    position: 'absolute',
+    bottom: 10,
+    left: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  videoBadgeText: {
+    fontSize: 8,
+    color: '#fff',
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   textContainer: {
     padding: 12,

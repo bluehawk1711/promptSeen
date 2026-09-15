@@ -43,13 +43,53 @@ export interface Prompt {
   isActive: boolean;
   /** Whether this prompt is locked behind a reward ad. */
   isPremium: boolean;
+  /**
+   * Optional video shown on the prompt detail screen.
+   *
+   * Missing/`null` means the prompt is image-only. Prompts stay image-first —
+   * `imageUrl` is the poster, the video plays on demand.
+   */
+  video?: PromptVideo | null;
   /** Creation timestamp (ms since epoch). */
   createdAt: number | null;
   /** Last update timestamp (ms since epoch). */
   updatedAt: number | null;
 }
 
-// ─── Category ───────────────────────────────────────────────────────────────
+// ─── Prompt video ───────────────────────────────────────────────────────────
+
+/** How a prompt's video is delivered to the app. */
+export type PromptVideoType = 'upload' | 'youtube';
+
+/**
+ * Optional video attached to a prompt.
+ *
+ * Two sources are supported:
+ *
+ * 1. `upload`  — a file uploaded to Cloudinary, delivered as MP4
+ * 2. `youtube` — a YouTube link saved by an admin, played as an embed
+ *
+ * `thumbnailUrl` is always populated so the app can show a poster frame
+ * without loading a player.
+ */
+export interface PromptVideo {
+  /** Where the video comes from. */
+  type: PromptVideoType;
+  /**
+   * Playable URL.
+   * - `upload`: Cloudinary MP4 delivery URL
+   * - `youtube`: the original YouTube link
+   */
+  url: string;
+  /** Cloudinary `public_id` of the uploaded video. Empty for YouTube. */
+  publicId: string;
+  /** YouTube video ID. Empty for uploads. */
+  youtubeId: string;
+  /** Poster frame shown before playback. */
+  thumbnailUrl: string;
+}
+
+// ─── Category ──────────────────────────────────────────────────────────────
 
 export interface Category {
   id: string;
@@ -97,6 +137,10 @@ export interface CloudinaryUploadResult {
   height: number;
   format: string;
   bytes: number;
+  /** Resource type Cloudinary stored the asset as. Video uploads return 'video'. */
+  resource_type?: 'image' | 'video' | 'raw';
+  /** Duration in seconds — only present for video uploads. */
+  duration?: number;
 }
 
 // ─── Backup ─────────────────────────────────────────────────────────────────
@@ -198,6 +242,7 @@ export type AnalyticsEventType =
   | 'prompt_unlike'
   | 'prompt_copy'
   | 'prompt_share'
+  | 'prompt_video_play'
   | 'prompt_premium_unlock'
   | 'collection_create'
   | 'collection_view'

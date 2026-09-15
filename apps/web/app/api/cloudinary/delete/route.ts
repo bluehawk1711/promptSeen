@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * API route to delete an image from Cloudinary.
+ * API route to delete an asset from Cloudinary.
  *
  * Uses the Cloudinary Admin API with signed requests.
  * Requires CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET env vars.
+ *
+ * Body: `{ publicId: string, resourceType?: 'image' | 'video' }`
  */
 export async function POST(request: NextRequest) {
   try {
-    const { publicId } = await request.json();
+    const { publicId, resourceType } = await request.json();
 
     if (!publicId) {
       return NextResponse.json(
@@ -16,6 +18,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Prompt images live under 'image', prompt videos under 'video'.
+    const assetType = resourceType === "video" ? "video" : "image";
 
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const apiKey = process.env.CLOUDINARY_API_KEY;
@@ -46,7 +51,7 @@ export async function POST(request: NextRequest) {
     params.append("signature", signature);
 
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`,
+      `https://api.cloudinary.com/v1_1/${cloudName}/${assetType}/destroy`,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
     const result = await response.json();
 
     if (result.result === "ok") {
-      return NextResponse.json({ success: true, publicId });
+      return NextResponse.json({ success: true, publicId, resourceType: assetType });
     } else {
       return NextResponse.json(
         { error: result.error?.message || "Delete failed" },

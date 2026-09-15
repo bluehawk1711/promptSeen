@@ -7,6 +7,8 @@ export type {
    FirebaseConfig,
    EnvPrefix,
    Prompt,
+   PromptVideo,
+   PromptVideoType,
    Category,
    CategoryCreateInput,
    UserProfile,
@@ -69,6 +71,27 @@ export {
    type UploadOptions,
    type PipelineResult,
 } from './cloudinary';
+
+// ─── Video ──────────────────────────────────────────────────────────────────
+export {
+   VIDEO_FOLDER,
+   VIDEO_ACCEPT_ATTRIBUTE,
+   VIDEO_HINT,
+   validateVideoFile,
+   parseYouTubeId,
+   getYouTubeEmbedUrl,
+   getYouTubeThumbnailUrl,
+   getCloudinaryVideoUrl,
+   getCloudinaryVideoThumbnailUrl,
+   createYouTubeVideo,
+   createUploadedVideo,
+   getPromptVideoThumbnail,
+   isPromptVideo,
+   hasPlayableVideo,
+   formatVideoDuration,
+   uploadVideoPipeline,
+   type VideoUploadResult,
+} from './video';
 
 // ─── Daily Prompt ──────────────────────────────────────────────────────────
 export {

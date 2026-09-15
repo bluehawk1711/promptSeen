@@ -24,6 +24,7 @@ import {
   Bookmark,
   Copy,
   LayoutGrid,
+  Play,
 } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -32,8 +33,10 @@ import { useFavoritesStore } from '@/store/favorites';
 import { useCategoriesStore } from '@/store/categories';
 import { useRewardAd } from '@/components/reward-ad';
 import { ShareCard, type ShareCardHandle } from '@/components/share-card';
+import { VideoPlayer } from '@/components/video-player';
 import { useRelatedPromptsQuery } from '@/lib/queries';
 import { trackEvent, trackStat } from '@/lib/analytics';
+import { hasPlayableVideo } from '@repo/shared/video';
 import type { Prompt } from '@repo/shared/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -61,6 +64,7 @@ export default function PromptDetailScreen() {
 
   const [copied, setCopied] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
 
   const prompt = prompts.find((p) => p.id === id);
   const isLiked = prompt ? likedIds.includes(prompt.id) : false;
@@ -147,6 +151,21 @@ export default function PromptDetailScreen() {
     }
   };
 
+  const handlePlayVideo = () => {
+    if (!prompt || !hasPlayableVideo(prompt.video)) return;
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    // Premium prompts keep the video behind the same reward-ad unlock.
+    if (isPremiumLocked) {
+      void handleUnlock();
+      return;
+    }
+
+    setShowVideo(true);
+    trackEvent('prompt_video_play', { promptId: prompt.id });
+  };
+
   if (!prompt) {
     return (
       <View style={styles.centered}>
@@ -154,6 +173,9 @@ export default function PromptDetailScreen() {
       </View>
     );
   }
+
+  /** Playable video, or null when the prompt is image-only. */
+  const video = hasPlayableVideo(prompt.video) ? prompt.video : null;
 
   return (
     <View style={styles.container}>
@@ -233,6 +255,19 @@ export default function PromptDetailScreen() {
             {/* Golden border glow */}
             <View style={styles.goldenBorder} />
 
+            {/* Video play affordance */}
+            {hasPlayableVideo(prompt.video) && (
+              <TouchableOpacity
+                style={styles.playOverlay}
+                onPress={handlePlayVideo}
+                activeOpacity={0.85}
+              >
+                <View style={styles.playCircle}>
+                  <Play size={24} color="#fff" fill="#fff" />
+                </View>
+              </TouchableOpacity>
+            )}
+
             {/* Share button (top-left) */}
             <TouchableOpacity
               style={styles.imageActionLeft}
@@ -263,8 +298,44 @@ export default function PromptDetailScreen() {
                 </Text>
               </View>
             )}
+
+            {/* Video badge */}
+            {video && (
+              <View style={styles.videoBadge}>
+                <Play size={9} color="#fff" fill="#fff" />
+                <Text style={styles.videoBadgeText}>
+                  {video.type === 'youtube' ? 'YOUTUBE' : 'VIDEO'}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
+
+        {/* ── Video Player ──────────────────────────────────────────── */}
+        {showVideo && video && (
+          <Animated.View
+            entering={FadeInDown.delay(60).springify()}
+            style={styles.videoSection}
+          >
+            <View style={styles.videoHeader}>
+              <View style={styles.videoHeaderLeft}>
+                <Play size={12} color="#FF7A2E" fill="#FF7A2E" />
+                <Text style={styles.videoHeaderText}>
+                  {video.type === 'youtube' ? 'YouTube video' : 'Prompt video'}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setShowVideo(false)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <Text style={styles.videoClose}>Close</Text>
+              </TouchableOpacity>
+            </View>
+
+            <VideoPlayer video={video} fallbackThumbnailUrl={prompt.imageUrl} />
+          </Animated.View>
+        )}
 
         {/* ── Prompt String Card ────────────────────────────────────── */}
         <Animated.View
@@ -540,6 +611,80 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '700',
+  },
+
+  // ── Video ───────────────────────────────────────────────────────────
+  playOverlay: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 4,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,180,50,0.6)',
+    shadowColor: '#FF7A2E',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  videoBadge: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+  },
+  videoBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  videoSection: {
+    marginHorizontal: 14,
+    marginBottom: 14,
+    padding: 12,
+    borderRadius: 16,
+    backgroundColor: '#1C0E02',
+    borderWidth: 1,
+    borderColor: 'rgba(255,122,46,0.15)',
+  },
+  videoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  videoHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  videoHeaderText: {
+    color: '#FF7A2E',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  videoClose: {
+    color: '#B8956A',
+    fontSize: 12,
+    fontWeight: '600',
   },
 
   // ── Prompt Card ─────────────────────────────────────────────────────

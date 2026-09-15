@@ -45,6 +45,7 @@ Single source of truth for domain types and utilities.
 - **Config:** `loadFirebaseConfig(prefix)` — loads `EXPO_PUBLIC_*` or `NEXT_PUBLIC_*` env vars
 - **Errors:** `messageFor(error)` — user-friendly Firebase error messages
 - **Cloudinary:** `uploadImagePipeline()`, `compressImage()`, `validateImageFile()`, `getCloudinaryUrl()`
+- **Video:** `uploadVideoPipeline()`, `validateVideoFile()`, `parseYouTubeId()`, `createYouTubeVideo()`, `createUploadedVideo()`, `getYouTubeEmbedUrl()`, `hasPlayableVideo()`
 - **Backup:** `exportFirestoreData()`, `importFirestoreData()`, `downloadBackup()`, `parseBackupFile()`
 - **Theme:** `Colors`, `darkColors`, `lightColors`, `SPACING`, `FONT_SIZE`, etc.
 
@@ -55,6 +56,7 @@ import { initFirebase } from '@repo/shared/firebase';
 import { loadFirebaseConfig } from '@repo/shared/config';
 import { messageFor } from '@repo/shared/errors';
 import { uploadImagePipeline } from '@repo/shared/cloudinary';
+import { createYouTubeVideo } from '@repo/shared/video';
 import { Colors } from '@repo/shared/theme';
 ```
 
@@ -86,6 +88,7 @@ import { Colors } from '@repo/shared/theme';
 ### Key Components
 - **`PromptCard`** — Premium card with gradient overlay, glass like button, haptic feedback
 - **`CategoryChips`** — Animated horizontal filter pills
+- **`VideoPlayer`** — WebView player for prompt videos (YouTube embed + Cloudinary MP4)
 - **`AdBanner`** — AdMob banner (every 6 cards)
 - **`RewardAd`** — Hook for reward ads to unlock premium prompts
 
@@ -168,6 +171,13 @@ Save URL + publicId to Firestore
   tags: string[];                // Search tokens
   isActive: boolean;             // Visibility toggle
   isPremium: boolean;            // Requires reward ad
+  video?: {                      // Optional — null/absent = image-only prompt
+    type: 'upload' | 'youtube';  // Cloudinary file or YouTube embed
+    url: string;                 // MP4 delivery URL (upload) or YT link
+    publicId: string;            // Cloudinary public_id ('' for YouTube)
+    youtubeId: string;           // YouTube video id ('' for uploads)
+    thumbnailUrl: string;        // Poster frame shown before playback
+  } | null;
   createdAt: number;             // Epoch ms
   updatedAt: number;             // Epoch ms
 }
@@ -203,8 +213,9 @@ Save URL + publicId to Firestore
 
 - **Target:** 1080×1350 (4:5 portrait), JPEG 82% quality
 - **Upload:** Unsigned preset `prompts` (configurable)
+- **Video:** Unsigned upload to `/video/upload` (folder `prompts/videos`, max 100MB), delivered as MP4 via `q_auto:good,vc_h264`
 - **Transforms:** Server-side `c_fill,w_1080,h_1350,q_82,f_auto` as safety net
-- **Delete:** Signed API route at `/api/cloudinary/delete`
+- **Delete:** Signed API route at `/api/cloudinary/delete` (`resourceType: 'image' | 'video'`)
 
 ### Required Env Vars
 | Var | Where | Purpose |

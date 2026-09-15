@@ -186,6 +186,8 @@ export interface UploadOptions {
   cloudName: string;
   uploadPreset: string;
   folder?: string;
+  /** Cloudinary resource type. Use 'video' for video files. Defaults to 'image'. */
+  resourceType?: 'image' | 'video';
   /** Called periodically during upload. */
   onProgress?: (progress: UploadProgress) => void;
 }
@@ -200,7 +202,13 @@ export function uploadToCloudinary(
   blob: Blob,
   options: UploadOptions
 ): Promise<CloudinaryUploadResult> {
-  const { cloudName, uploadPreset, folder = 'prompts', onProgress } = options;
+  const {
+    cloudName,
+    uploadPreset,
+    folder = 'prompts',
+    resourceType = 'image',
+    onProgress,
+  } = options;
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -247,7 +255,7 @@ export function uploadToCloudinary(
 
     xhr.open(
       'POST',
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
+      `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`
     );
     xhr.send(formData);
   });

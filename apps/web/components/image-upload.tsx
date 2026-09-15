@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState, forwardRef, useImperativeHandle } from "react";
+import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react";
 import Image from "next/image";
 import {
   Upload,
@@ -20,19 +20,39 @@ import {
   type CompressResult,
 } from "@repo/shared/cloudinary";
 
+/** Result of a successful Cloudinary upload. */
+export interface UploadedImage {
+  imageUrl: string;
+  publicId: string;
+}
+
 interface ImageUploadProps {
   currentImageUrl?: string;
   currentPublicId?: string;
-  onUploadComplete: (data: { imageUrl: string; publicId: string }) => void;
+  onUploadComplete: (data: UploadedImage) => void;
   onRemove?: () => void;
   onError?: (message: string) => void;
+  /**
+   * Notifies the parent when an image is waiting to be uploaded.
+   *
+   * Uploads are deferred until the parent form is saved, so the parent needs
+   * this signal to know that an image exists even though no URL is available
+   * yet (used to enable the save button).
+   */
+  onPendingChange?: (hasPending: boolean) => void;
   disabled?: boolean;
   cloudName: string;
   uploadPreset: string;
 }
 
 export interface ImageUploadHandle {
-  upload: () => Promise<boolean>;
+  /**
+   * Uploads the pending (compressed) image.
+   *
+   * @returns The uploaded image data, or `null` when there is nothing pending
+   * or when the upload failed (the error is surfaced through `onError`).
+   */
+  upload: () => Promise<UploadedImage | null>;
   hasPendingUpload: () => boolean;
 }
 
@@ -46,6 +66,7 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
       onUploadComplete,
       onRemove,
       onError,
+      onPendingChange,
       disabled = false,
       cloudName,
       uploadPreset,
@@ -61,14 +82,29 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const [isDragOver, setIsDragOver] = useState(false);
 
-    const upload = useCallback(async (): Promise<boolean> => {
-      if (!compressedBlob) return true;
+    // Keep the latest callback in a ref so the pending-state effect below only
+    // re-runs when the selection actually changes (not on every parent render).
+    const onPendingChangeRef = useRef(onPendingChange);
+    useEffect(() => {
+      onPendingChangeRef.current = onPendingChange;
+    }, [onPendingChange]);
+
+    const reportedPendingRef = useRef(false);
+    useEffect(() => {
+      const pending = compressedBlob !== null;
+      if (reportedPendingRef.current === pending) return;
+      reportedPendingRef.current = pending;
+      onPendingChangeRef.current?.(pending);
+    }, [compressedBlob]);
+
+    const upload = useCallback(async (): Promise<UploadedImage | null> => {
+      if (!compressedBlob) return null;
       if (!cloudName || !uploadPreset) {
         const msg = "Cloudinary not configured. Set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME and NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET in .env";
         setStage("error");
         setErrorMsg(msg);
         onError?.(msg);
-        return false;
+        return null;
       }
 
       try {
@@ -84,20 +120,22 @@ export const ImageUpload = forwardRef<ImageUploadHandle, ImageUploadProps>(
           },
         });
 
+        const uploaded: UploadedImage = {
+          imageUrl: result.secure_url,
+          publicId: result.public_id,
+        };
+
         setStage("done");
         setPreview(result.secure_url);
         setCompressedBlob(null);
-        onUploadComplete({
-          imageUrl: result.secure_url,
-          publicId: result.public_id,
-        });
-        return true;
+        onUploadComplete(uploaded);
+        return uploaded;
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : "Upload failed";
         setStage("error");
         setErrorMsg(message);
         onError?.(message);
-        return false;
+        return null;
       }
     }, [compressedBlob, cloudName, uploadPreset, onUploadComplete, onError]);
 
