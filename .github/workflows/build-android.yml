@@ -11,15 +11,6 @@ on:
           - dev
           - release
         default: dev
-      environment:
-        description: "Target environment"
-        required: true
-        type: choice
-        options:
-          - development
-          - preview
-          - production
-        default: development
 
 # Cancel in-progress runs for the same branch
 concurrency:
