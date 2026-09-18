@@ -191,6 +191,8 @@ export function subscribeToPrompts(): Unsubscribe {
   }
 
   // No cache — subscribe to Firestore (first launch only)
+  if (!db) return () => {};
+
   const q = query(
     collection(db, 'prompts'),
     where('isActive', '==', true),

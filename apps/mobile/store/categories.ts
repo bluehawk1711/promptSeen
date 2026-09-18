@@ -122,6 +122,8 @@ export function subscribeToCategories(): Unsubscribe {
   }
 
   // No cache — subscribe to Firestore
+  if (!db) return () => {};
+
   const q = query(
     collection(db, 'categories'),
     orderBy('order', 'asc')
