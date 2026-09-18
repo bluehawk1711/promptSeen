@@ -53,6 +53,14 @@
     "./analytics": {
       "types": "./dist/analytics.d.ts",
       "import": "./dist/analytics.js"
+    },
+    "./app-update": {
+      "types": "./dist/app-update.d.ts",
+      "import": "./dist/app-update.js"
+    },
+    "./trending": {
+      "types": "./dist/trending.d.ts",
+      "import": "./dist/trending.js"
     }
   },
   "scripts": {

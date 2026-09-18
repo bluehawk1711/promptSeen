@@ -23,7 +23,7 @@ export type EnvPrefix = 'EXPO_PUBLIC_' | 'NEXT_PUBLIC_';
  * Global app identity — change the name in ONE place and it updates
  * across the admin panel and the mobile app.
  */
-export const APP_NAME = 'Prompt Seen';
+export const APP_NAME = 'Prompt View';
 export const APP_TAGLINE = 'Your AI-Powered Creative Companion';
 
 // ─── App Settings (remote config) ───────────────────────────────────

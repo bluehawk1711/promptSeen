@@ -67,6 +67,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared package
+        run: pnpm --filter @repo/shared build
+
       # ── CocoaPods cache ────────────────────────────────────────────────
       - name: Cache CocoaPods
         uses: actions/cache@v4
