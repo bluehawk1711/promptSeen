@@ -4,12 +4,12 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Image,
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
   Share,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Clipboard from 'expo-clipboard';
@@ -41,6 +41,7 @@ import { hasPlayableVideo } from '@repo/shared/video';
 import { Colors } from '@/theme/colors';
 import { LikeButton } from '@/components/animated';
 import { PromptCard } from '@/components/prompt-card';
+import { prefetchPromptImages } from '@/lib/prefetch';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -80,6 +81,21 @@ export default function PromptDetailScreen() {
       trackStat('promptViews');
     }
   }, [id]);
+
+  // Prefetch adjacent prompt images (next 4 in the same category) for instant scroll
+  useEffect(() => {
+    if (!prompt) return;
+    const categoryId = prompt.categoryIds?.[0];
+    if (!categoryId) return;
+
+    const categoryPrompts = prompts
+      .filter((p) => p.categoryIds?.includes(categoryId) && p.id !== prompt.id)
+      .slice(0, 4);
+
+    if (categoryPrompts.length > 0) {
+      prefetchPromptImages(categoryPrompts);
+    }
+  }, [prompt?.id]);
 
   // Related prompts
   const {
@@ -267,9 +283,11 @@ export default function PromptDetailScreen() {
           style={styles.imageFrame}
         >
           <Image
-            source={{ uri: prompt.imageUrl }}
+            source={prompt.imageUrl}
             style={styles.heroImage}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={300}
+            cachePolicy="memory-disk"
           />
 
           {/* Top scrim so glass buttons read over the image */}

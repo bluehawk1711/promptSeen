@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
@@ -54,9 +55,11 @@ export const TrendingCard = memo(function TrendingCard({
         {/* Image */}
         <View style={styles.imageWrap}>
           <Image
-            source={{ uri: prompt.imageUrl }}
+            source={prompt.imageUrl}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
           />
 
           {/* Rank badge — medal style for top 3 */}

@@ -13,7 +13,7 @@ import { PRIMARY, withPrimaryOpacity } from '@/theme/colors';
  * Wrap the app root; renders children only when no blocking update is needed.
  */
 export function ForceUpdateGate({ children }: { children: React.ReactNode }) {
-  const { settings, appName, fetchSettings, updateRequirement, loaded } = useAppSettingsStore();
+  const { settings, appName, fetchSettings, forceRefetchSettings, updateRequirement, loaded } = useAppSettingsStore();
 
   useEffect(() => {
     void fetchSettings();
@@ -67,7 +67,7 @@ export function ForceUpdateGate({ children }: { children: React.ReactNode }) {
           <TouchableOpacity
             style={styles.retry}
             onPress={() => {
-              void fetchSettings();
+              void forceRefetchSettings();
             }}
           >
             <RefreshCw size={14} color="rgba(255,245,235,0.6)" />

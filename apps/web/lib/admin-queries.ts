@@ -25,6 +25,8 @@ import {
   limit as firestoreLimit,
 } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
+import { invalidateCache } from '@/lib/redis';
+import { cacheKeys } from '@/lib/cache-keys';
 import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus, DailyStats } from '@repo/shared/types';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
@@ -66,10 +68,11 @@ export function useCreatePrompt() {
       return docRef.id;
     },
     onSuccess: () => {
-      // Invalidate all related queries
+      // Invalidate React Query caches
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
-      // Also invalidate mobile app queries via Firestore realtime
+      // Invalidate Redis cache so mobile app gets fresh data
+      invalidateCache(cacheKeys.prompts);
     },
   });
 }
@@ -87,6 +90,7 @@ export function useUpdatePrompt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
+      invalidateCache(cacheKeys.prompts);
     },
   });
 }
@@ -101,6 +105,7 @@ export function useDeletePrompt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
+      invalidateCache(cacheKeys.prompts);
     },
   });
 }
@@ -134,6 +139,7 @@ export function useCreateCategory() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
+      invalidateCache(cacheKeys.categories);
     },
   });
 }
@@ -147,6 +153,7 @@ export function useUpdateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
+      invalidateCache(cacheKeys.categories);
     },
   });
 }
@@ -161,6 +168,7 @@ export function useDeleteCategory() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
+      invalidateCache(cacheKeys.categories);
     },
   });
 }
@@ -280,6 +288,7 @@ export function useApproveSubmission() {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.submissions });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
+      invalidateCache(cacheKeys.prompts);
     },
   });
 }

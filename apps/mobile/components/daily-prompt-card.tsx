@@ -1,5 +1,6 @@
 import { memo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -65,9 +66,11 @@ export const DailyPromptCard = memo(function DailyPromptCard({
         {/* Image */}
         <View style={styles.imageWrap}>
           <Image
-            source={{ uri: prompt.imageUrl }}
+            source={prompt.imageUrl}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            transition={300}
+            cachePolicy="memory-disk"
           />
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.75)']}

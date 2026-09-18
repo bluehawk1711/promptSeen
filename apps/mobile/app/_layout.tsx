@@ -19,11 +19,13 @@ import {
 import {
   subscribeToPrompts,
   unsubscribeFromPrompts,
+  usePromptsStore,
 } from '@/store/prompts';
 import {
   subscribeToCategories,
   unsubscribeFromCategories,
 } from '@/store/categories';
+import { prefetchPromptImages } from '@/lib/prefetch';
 
 // Configure notification appearance when app is in foreground
 try {
@@ -64,6 +66,14 @@ function AppContent() {
       unsubPrompts();
       unsubCategories();
     };
+  }, []);
+
+  // Prefetch images once prompts are available
+  useEffect(() => {
+    const prompts = usePromptsStore.getState().prompts;
+    if (prompts.length > 0) {
+      prefetchPromptImages(prompts);
+    }
   }, []);
 
   useEffect(() => {

@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity as RNTouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity as RNTouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
@@ -81,9 +82,11 @@ export const PromptCard = memo(function PromptCard({
           <View style={styles.imageWrap}>
             {prompt.imageUrl ? (
               <Image
-                source={{ uri: prompt.imageUrl }}
+                source={prompt.imageUrl}
                 style={[styles.image, compact && styles.imageCompact]}
-                resizeMode="cover"
+                contentFit="cover"
+                transition={300}
+                cachePolicy="memory-disk"
               />
             ) : (
               <View style={[styles.image, compact && styles.imageCompact, { backgroundColor: 'rgba(255,255,255,0.05)' }]} />

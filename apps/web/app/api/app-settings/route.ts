@@ -1,28 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminDb } from '@/lib/firebase-admin'
+import { getOrFetch, invalidateCache } from '@/lib/redis'
 import { DEFAULT_APP_SETTINGS, APP_NAME } from '@repo/shared/types'
 import type { AppSettings, SocialLink } from '@repo/shared/types'
 
+const SETTINGS_CACHE_KEY = 'cache:settings:app'
+/** Settings rarely change — cache for 5 minutes on the server. */
+const SETTINGS_CACHE_TTL = 5 * 60
+
 /**
- * GET /api/app-settings — public read of remote app settings.
+ * GET /api/app-settings — public read, Redis-cached.
  *
- * The mobile app fetches this on launch for force-update checks,
- * social links, about text, and the Play Store URL.
+ * The mobile app fetches this on launch for force-update checks.
+ * Cached in Redis for 5 minutes. If the admin saves new settings,
+ * the cache is invalidated immediately.
  */
 export async function GET() {
   try {
-    const db = getAdminDb()
-    const snap = await db.collection('settings').doc('app').get()
+    const settings = await getOrFetch<AppSettings>(
+      SETTINGS_CACHE_KEY,
+      SETTINGS_CACHE_TTL,
+      async () => {
+        const db = getAdminDb()
+        const snap = await db.collection('settings').doc('app').get()
+        if (!snap.exists) {
+          return { ...DEFAULT_APP_SETTINGS, updatedAt: null }
+        }
+        const data = snap.data() as Partial<AppSettings>
+        return { ...DEFAULT_APP_SETTINGS, ...data } as AppSettings
+      },
+    )
 
-    if (!snap.exists) {
-      return NextResponse.json({ settings: { ...DEFAULT_APP_SETTINGS }, appName: APP_NAME })
-    }
-
-    const data = snap.data() as Partial<AppSettings>
-    return NextResponse.json({
-      settings: { ...DEFAULT_APP_SETTINGS, ...data },
-      appName: APP_NAME,
-    })
+    return NextResponse.json({ settings, appName: APP_NAME })
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Failed to load settings'
     return NextResponse.json({ error: message }, { status: 500 })
@@ -38,7 +47,6 @@ interface SocialLinkInput {
   isActive?: unknown
 }
 
-/** Validate + normalize a social link from the request body. */
 function parseSocialLink(raw: SocialLinkInput, index: number): SocialLink | null {
   if (typeof raw.url !== 'string' || raw.url.trim() === '') return null
   return {
@@ -53,7 +61,11 @@ function parseSocialLink(raw: SocialLinkInput, index: number): SocialLink | null
 }
 
 /**
- * PUT /api/app-settings — admin save for remote app settings.
+ * PUT /api/app-settings — admin save.
+ *
+ * Writes to Firestore AND invalidates the Redis cache immediately.
+ * This ensures the mobile app gets fresh settings on next fetch,
+ * including any version changes that trigger force-update.
  */
 export async function PUT(request: NextRequest) {
   try {
@@ -77,6 +89,9 @@ export async function PUT(request: NextRequest) {
 
     const db = getAdminDb()
     await db.collection('settings').doc('app').set(settings, { merge: true })
+
+    // Invalidate Redis cache so mobile app gets fresh settings immediately
+    await invalidateCache(SETTINGS_CACHE_KEY)
 
     return NextResponse.json({ settings, ok: true })
   } catch (error: unknown) {
