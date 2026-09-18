@@ -168,7 +168,7 @@ export function AdminSidebar() {
             <div className="flex min-w-0 flex-1 items-center gap-2.5">
               <PSLogo className="size-8 shrink-0" />
               <div className="flex flex-col min-w-0">
-                <span className="truncate text-sm font-bold tracking-tight">TS Prompt</span>
+                <span className="truncate text-sm font-bold tracking-tight">Prompt View</span>
                 <span className="text-[10px] text-muted-foreground font-medium">Admin Panel</span>
               </div>
             </div>
@@ -181,7 +181,7 @@ export function AdminSidebar() {
                   </DashboardLink>
                 }
               />
-              <TooltipContent side="right" sideOffset={8}>TS Prompt Admin</TooltipContent>
+              <TooltipContent side="right" sideOffset={8}>Prompt View Admin</TooltipContent>
             </Tooltip>
           )}
           {!collapsed && (

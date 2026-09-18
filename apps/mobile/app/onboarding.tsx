@@ -87,7 +87,7 @@ const SLIDES: Slide[] = [
   {
     id: 'rate',
     title: 'Enjoying ',
-    highlightWord: 'TS Prompt?',
+    highlightWord: 'Prompt View?',
     description:
       'Rate us please and support us! Your feedback helps other creators discover the app and helps us keep building great features.',
     buttonText: 'Get Started',
@@ -475,6 +475,7 @@ export default function OnboardingScreen() {
   };
 
   // Animated pagination dots
+  const dotInactiveColor = withPrimaryOpacity(0.25);
   const Dot = ({ index }: { index: number }) => {
     const animatedStyle = useAnimatedStyle(() => {
       const inputRange = [
@@ -493,7 +494,7 @@ export default function OnboardingScreen() {
       const backgroundColor = interpolateColor(
         scrollX.value,
         inputRange,
-        [withPrimaryOpacity(0.25), PRIMARY, withPrimaryOpacity(0.25)]
+        [dotInactiveColor, PRIMARY, dotInactiveColor]
       );
 
       return { width, backgroundColor };

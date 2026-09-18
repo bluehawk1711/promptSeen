@@ -13,7 +13,7 @@ export default function HelpPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Help Center</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Everything you need to know about managing your TS Prompt admin panel.
+            Everything you need to know about managing your Prompt View admin panel.
           </p>
         </div>
       </FadeIn>
@@ -28,7 +28,7 @@ export default function HelpPage() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Welcome to the TS Prompt Admin Panel! This is your central hub for managing all
+            Welcome to the Prompt View Admin Panel! This is your central hub for managing all
             AI prompts, categories, user submissions, notifications, and app analytics.
             Use the sidebar to navigate between sections, and the search bar (⌘K) to quickly
             jump to any page.

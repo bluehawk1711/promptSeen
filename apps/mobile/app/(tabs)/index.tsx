@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, memo } from 'react';
 import {
   View,
   StyleSheet,
@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Search, Sparkles, WifiOff, TrendingUp } from 'lucide-react-native';
+import { Search, Sparkles, TrendingUp } from 'lucide-react-native';
 
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -18,24 +18,114 @@ import { useCategoriesStore } from '@/store/categories';
 import { useFavoritesStore } from '@/store/favorites';
 import { useAppSettingsStore } from '@/store/app-settings';
 import { trackEvent, trackStat, trackActiveUser } from '@/lib/analytics';
-import { PulseDot, Shimmer } from '@/components/animated';
+import { Shimmer } from '@/components/animated';
 import { PromptCard } from '@/components/prompt-card';
 import { DailyPromptCard } from '@/components/daily-prompt-card';
 import { TrendingCard } from '@/components/trending-card';
 import { CategoryChips } from '@/components/category-chips';
 import { AdBanner } from '@/components/ad-banner';
 import { getTrendingPrompts, getTrendingScore } from '@repo/shared/trending';
-import type { Prompt } from '@repo/shared/types';
+import type { Prompt, Category } from '@repo/shared/types';
 
 /**
  * Home screen — daily prompt, trending section, search, categories, and prompt grid.
  */
+
+type HomeHeaderProps = {
+  dailyPrompt: Prompt | null;
+  dailyCategory: Category | null | undefined;
+  searchQuery: string;
+  trendingPrompts: Prompt[];
+  trendingScores: Map<string, number>;
+  categories: Category[];
+  selectedCategory: string | null;
+  onSelectCategory: (slug: string | null) => void;
+  filteredCount: number;
+  colors: typeof Colors.light;
+};
+
+const HomeHeader = memo(function HomeHeader({
+  dailyPrompt,
+  dailyCategory,
+  searchQuery,
+  trendingPrompts,
+  trendingScores,
+  categories,
+  selectedCategory,
+  onSelectCategory,
+  filteredCount,
+  colors,
+}: HomeHeaderProps) {
+  return (
+    <View>
+      {/* Daily Prompt — stays visible unless the user is searching */}
+      {dailyPrompt && !searchQuery && (
+        <View style={styles.dailySection}>
+          <DailyPromptCard
+            prompt={dailyPrompt}
+            categoryName={dailyCategory?.name}
+            categoryIcon={dailyCategory?.icon}
+          />
+        </View>
+      )}
+
+      {/* Trending Section — stays visible unless the user is searching */}
+      {trendingPrompts.length > 0 && !searchQuery && (
+        <View style={styles.trendingSection}>
+          <View style={styles.trendingHeader}>
+            <View style={styles.trendingTitleRow}>
+              <View style={[styles.trendingIconWrap, { backgroundColor: withPrimaryOpacity(0.12) }]}>
+                <TrendingUp size={13} color={PRIMARY} strokeWidth={2.5} />
+              </View>
+              <Text style={[styles.trendingTitle, { color: colors.text }]}>
+                Trending Now
+              </Text>
+            </View>
+            <Text style={[styles.trendingSubtitle, { color: colors.mutedForeground }]}>
+              Top 10
+            </Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.trendingScroll}
+          >
+            {trendingPrompts.map((prompt, i) => (
+              <TrendingCard
+                key={prompt.id}
+                prompt={prompt}
+                rank={i + 1}
+                score={trendingScores.get(prompt.id) ?? 0}
+                index={Math.min(i, 6)}
+              />
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* Category Chips */}
+      <CategoryChips
+        categories={categories}
+        selected={selectedCategory}
+        onSelect={onSelectCategory}
+      />
+
+      {/* Section title — reflects active filter */}
+      {!searchQuery && filteredCount > 0 && (
+        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
+          {selectedCategory ? 'FILTERED PROMPTS' : 'ALL PROMPTS'}
+        </Text>
+      )}
+    </View>
+  );
+});
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme];
 
-  const { prompts, loading, connected, getDailyPrompt } = usePromptsStore();
+  const { prompts, loading, getDailyPrompt } = usePromptsStore();
   const { categories } = useCategoriesStore();
   const { likedIds } = useFavoritesStore();
   const { appName } = useAppSettingsStore();
@@ -215,70 +305,6 @@ export default function HomeScreen() {
     </View>
   );
 
-  const renderHeader = () => (
-    <View>
-      {/* Daily Prompt — stays visible unless the user is searching */}
-      {dailyPrompt && !searchQuery && (
-        <View style={styles.dailySection}>
-          <DailyPromptCard
-            prompt={dailyPrompt}
-            categoryName={dailyCategory?.name}
-            categoryIcon={dailyCategory?.icon}
-          />
-        </View>
-      )}
-
-      {/* Trending Section — stays visible unless the user is searching */}
-      {trendingPrompts.length > 0 && !searchQuery && (
-        <View style={styles.trendingSection}>
-          <View style={styles.trendingHeader}>
-            <View style={styles.trendingTitleRow}>
-              <View style={[styles.trendingIconWrap, { backgroundColor: withPrimaryOpacity(0.12) }]}>
-                <TrendingUp size={13} color={PRIMARY} strokeWidth={2.5} />
-              </View>
-              <Text style={[styles.trendingTitle, { color: colors.text }]}>
-                Trending Now
-              </Text>
-            </View>
-            <Text style={[styles.trendingSubtitle, { color: colors.mutedForeground }]}>
-              Top 10
-            </Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.trendingScroll}
-          >
-            {trendingPrompts.map((prompt, i) => (
-              <TrendingCard
-                key={prompt.id}
-                prompt={prompt}
-                rank={i + 1}
-                score={trendingScores.get(prompt.id) ?? 0}
-                index={Math.min(i, 6)}
-              />
-            ))}
-          </ScrollView>
-        </View>
-      )}
-
-      {/* Category Chips */}
-      <CategoryChips
-        categories={categories}
-        selected={selectedCategory}
-        onSelect={handleCategorySelect}
-      />
-
-      {/* Section title — reflects active filter */}
-      {!searchQuery && filteredPrompts.length > 0 && (
-        <Text style={[styles.sectionTitle, { color: colors.mutedForeground }]}>
-          {selectedCategory ? 'FILTERED PROMPTS' : 'ALL PROMPTS'}
-        </Text>
-      )}
-    </View>
-  );
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {loading ? (
@@ -302,22 +328,6 @@ export default function HomeScreen() {
                 </View>
               </View>
 
-              {/* Live connection indicator */}
-              <View style={styles.connectionWrap}>
-                {connected ? (
-                  <View style={styles.liveBadge}>
-                    <PulseDot color="#34C759" size={5} />
-                    <Text style={[styles.liveText, { color: '#34C759' }]}>Live</Text>
-                  </View>
-                ) : (
-                  <View style={styles.liveBadge}>
-                    <WifiOff size={12} color={colors.mutedForeground} />
-                    <Text style={[styles.liveText, { color: colors.mutedForeground }]}>
-                      Offline
-                    </Text>
-                  </View>
-                )}
-              </View>
             </View>
 
             {/* Search Bar — stable, never unmounts between keystrokes */}
@@ -340,7 +350,20 @@ export default function HomeScreen() {
             data={feedRows}
             renderItem={renderPrompt}
             keyExtractor={(item) => item.key}
-            ListHeaderComponent={renderHeader}
+            ListHeaderComponent={
+              <HomeHeader
+                dailyPrompt={dailyPrompt}
+                dailyCategory={dailyCategory}
+                searchQuery={searchQuery}
+                trendingPrompts={trendingPrompts}
+                trendingScores={trendingScores}
+                categories={categories}
+                selectedCategory={selectedCategory}
+                onSelectCategory={handleCategorySelect}
+                filteredCount={filteredPrompts.length}
+                colors={colors}
+              />
+            }
             contentContainerStyle={[
               styles.listContent,
               { paddingBottom: insets.bottom + 100 },
@@ -391,17 +414,6 @@ const styles = StyleSheet.create({
   },
   appName: { fontSize: 22, fontWeight: '700', letterSpacing: -0.3 },
   appTagline: { fontSize: 12, marginTop: 2 },
-  connectionWrap: { paddingRight: 4 },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    backgroundColor: 'rgba(52,199,89,0.1)',
-  },
-  liveText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',

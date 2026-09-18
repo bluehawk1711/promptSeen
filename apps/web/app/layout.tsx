@@ -9,13 +9,17 @@ const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 const firaCode = Fira_Code({ subsets: ['latin'], variable: '--font-mono' })
 
 export const metadata: Metadata = {
-  title: 'TS Prompt Admin',
-  description: 'Admin panel for managing TS Prompt prompts and categories',
+  title: 'Prompt View Admin',
+  description: 'Admin panel for managing Prompt View prompts and categories',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/round_logo.png',
+    apple: '/round_logo.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'PS Admin',
+    title: 'PV Admin',
   },
 }
 
@@ -37,7 +41,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="apple-touch-icon" href="/icon.svg" />
+        <link rel="apple-touch-icon" href="/round_logo.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body

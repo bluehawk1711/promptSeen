@@ -24,7 +24,7 @@ export interface ShareCardHandle {
  * - Prompt image as background
  * - Gradient overlay
  * - Prompt text
- * - App branding (TS Prompt logo)
+ * - App branding (Prompt View logo)
  * - Category badge
  */
 export const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(
@@ -50,7 +50,7 @@ export const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(
         // Fallback to text-only share
         const { Share } = require('react-native');
         await Share.share({
-          message: `${prompt.text}\n\n— via TS Prompt`,
+          message: `${prompt.text}\n\n— via Prompt View`,
         });
       }
     }, [prompt]);
@@ -76,9 +76,12 @@ export const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(
             {/* Top branding */}
             <View style={styles.topRow}>
               <View style={styles.logoBadge}>
-                <Text style={styles.logoText}>PS</Text>
+                <Image
+                  source={require('@/assets/images/app_logo-transparent.png')}
+                  style={styles.logoImage}
+                />
               </View>
-              <Text style={styles.brandName}>TS Prompt</Text>
+              <Text style={styles.brandName}>Prompt View</Text>
             </View>
 
             {/* Prompt text */}
@@ -117,7 +120,7 @@ export const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(
             <View style={styles.watermarkRow}>
               <Sparkles size={10} color="rgba(184,149,106,0.6)" />
               <Text style={styles.watermark}>
-                Get more prompts — Download TS Prompt
+                Get more prompts — Download Prompt View
               </Text>
             </View>
           </View>
@@ -173,14 +176,14 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: PRIMARY,
+    backgroundColor: '#0D0500',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  logoText: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#fff',
+  logoImage: {
+    width: 24,
+    height: 24,
   },
   brandName: {
     fontSize: 16,

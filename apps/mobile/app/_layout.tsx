@@ -7,7 +7,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { useOnboardingStore } from '@/store/onboarding';
-import { SplashProvider } from '@/components/splash-screen';
 import { ForceUpdateGate } from '@/components/force-update';
 import {
   configureNotificationHandler,
@@ -35,15 +34,13 @@ try {
 }
 
 /**
- * Root layout — splash → Firestore → notifications → navigation.
+ * Root layout — Firestore → notifications → navigation.
  */
 export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryProvider>
-        <SplashProvider>
-          <AppContent />
-        </SplashProvider>
+        <AppContent />
       </QueryProvider>
     </GestureHandlerRootView>
   );

@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   wrapperCompact: {
+    width: '46%',
     marginBottom: 10,
   },
   cardShell: {

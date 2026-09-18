@@ -1,5 +1,5 @@
 /**
- * React Query provider for the TS Prompt admin panel.
+ * React Query provider for the Prompt View admin panel.
  *
  * Same cache strategy as mobile: 2.5 min staleTime, 10 min gcTime.
  * Admin panel benefits from caching because:

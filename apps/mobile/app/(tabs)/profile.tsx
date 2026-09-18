@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, Share } from 'react-native';
+import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Animated from 'react-native-reanimated';
@@ -140,8 +141,12 @@ export default function ProfileScreen() {
             {/* Glow rings behind the logo */}
             <View style={styles.heroGlowRing}>
               <View style={[styles.heroGlowRing2, { backgroundColor: withPrimaryOpacity(0.08) }]} />
-              <View style={[styles.heroLogo, { backgroundColor: PRIMARY }]}>
-                <Text style={styles.heroLogoText}>PS</Text>
+              <View style={styles.heroLogo}>
+                <Image
+                  source={require('@/assets/images/app_logo-transparent.png')}
+                  style={styles.heroLogoImage}
+                  contentFit="contain"
+                />
               </View>
             </View>
 
@@ -378,8 +383,12 @@ export default function ProfileScreen() {
         <Animated.View>
           <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <View style={styles.aboutHeader}>
-              <View style={[styles.aboutLogo, { backgroundColor: PRIMARY }]}>
-                <Text style={styles.aboutLogoText}>PS</Text>
+              <View style={styles.aboutLogo}>
+                <Image
+                  source={require('@/assets/images/app_logo-transparent.png')}
+                  style={styles.aboutLogoImage}
+                  contentFit="contain"
+                />
               </View>
               <View style={styles.aboutHeaderText}>
                 <Text style={[styles.aboutAppName, { color: colors.text }]}>{appName}</Text>
@@ -437,13 +446,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#0D0500',
     shadowColor: PRIMARY,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 24,
     elevation: 8,
   },
-  heroLogoText: { fontSize: 26, fontWeight: '900', color: '#fff', letterSpacing: -1 },
+  heroLogoImage: { width: 56, height: 56 },
   heroAppName: { fontSize: 22, fontWeight: '800', letterSpacing: -0.5, marginBottom: 6 },
   heroTagline: { fontSize: 13, fontWeight: '500', marginBottom: 16 },
   heroVersionBadge: {
@@ -533,8 +543,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#0D0500',
   },
-  aboutLogoText: { fontSize: 18, fontWeight: '900', color: '#fff', letterSpacing: -0.5 },
+  aboutLogoImage: { width: 36, height: 36 },
   aboutHeaderText: { flex: 1 },
   aboutAppName: { fontSize: 17, fontWeight: '800', letterSpacing: -0.3 },
   aboutVersion: { fontSize: 12, marginTop: 2, fontVariant: ['tabular-nums'] },

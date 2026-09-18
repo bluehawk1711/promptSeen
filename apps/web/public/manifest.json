@@ -1,7 +1,7 @@
 {
-  "name": "TS Prompt Admin",
-  "short_name": "PS Admin",
-  "description": "Admin panel for managing TS Prompt prompts and categories",
+  "name": "Prompt View Admin",
+  "short_name": "PV Admin",
+  "description": "Admin panel for managing Prompt View prompts and categories",
   "start_url": "/admin",
   "display": "standalone",
   "background_color": "#0D0500",
@@ -9,9 +9,9 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "/app_logo-transparent.png",
       "sizes": "any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]

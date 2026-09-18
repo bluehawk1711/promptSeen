@@ -40,7 +40,7 @@ export function LoginForm() {
           </div>
           <div className="text-center space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
-            <p className="text-sm text-muted-foreground">Sign in to the TS Prompt admin panel</p>
+            <p className="text-sm text-muted-foreground">Sign in to the Prompt View admin panel</p>
           </div>
         </div>
 
@@ -81,7 +81,7 @@ export function LoginForm() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground/60 mt-8">
-          TS Prompt Admin Panel — Access restricted to authorized administrators
+          Prompt View Admin Panel — Access restricted to authorized administrators
         </p>
       </div>
     </div>

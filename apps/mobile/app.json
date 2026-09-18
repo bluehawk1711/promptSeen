@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "PromptGallery",
+    "name": "Prompt View",
     "slug": "promptgallery",
     "scheme": "promptgallery",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app_logo.png",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
@@ -14,9 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#0D0500",
-        "foregroundImage": "./assets/images/splash.png",
-        "backgroundImage": "./assets/images/splash.png",
-        "monochromeImage": "./assets/images/splash.png"
+        "foregroundImage": "./assets/images/app_logo-transparent.png",
+        "backgroundImage": "./assets/images/app_logo-transparent.png",
+        "monochromeImage": "./assets/images/app_logo-transparent.png"
       },
       "predictiveBackGestureEnabled": true,
       "package": "com.promptgallery.app",
@@ -24,7 +24,7 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/icon.png"
+      "favicon": "./assets/images/app_logo.png"
     },
     "plugins": [
       "expo-asset",
@@ -37,24 +37,6 @@
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
           "iosAppId": "ca-app-pub-3940256099942544~1458001516"
-        }
-      ],
-      [
-        "expo-updates",
-        {
-          "url": "https://u.expo.dev/promptgallery"
-        }
-      ],
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#0D0500",
-          "dark": {
-            "backgroundColor": "#0D0500"
-          }
         }
       ],
       [
@@ -74,14 +56,13 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/icon.png",
+          "icon": "./assets/images/app_logo.png",
           "color": "#EE6123"
         }
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }

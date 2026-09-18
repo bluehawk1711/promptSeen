@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "TS Prompt",
+  title: "Prompt View",
   description: "Curated AI prompts with beautiful images",
 };
 

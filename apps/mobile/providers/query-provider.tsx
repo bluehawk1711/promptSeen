@@ -1,5 +1,5 @@
 /**
- * React Query provider — global cache config for the TS Prompt mobile app.
+ * React Query provider — global cache config for the Prompt View mobile app.
  *
  * Cache strategy:
  * - staleTime: 2.5 minutes — data is considered fresh for 2.5 minutes

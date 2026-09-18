@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -69,6 +69,7 @@ export default function PromptDetailScreen() {
   const [copied, setCopied] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
+  const blurTargetRef = useRef(null);
 
   const prompt = prompts.find((p) => p.id === id);
   const isLiked = prompt ? likedIds.includes(prompt.id) : false;
@@ -354,7 +355,7 @@ export default function PromptDetailScreen() {
             </View>
           </View>
 
-          <View style={styles.promptTextWrap}>
+          <View style={styles.promptTextWrap} ref={blurTargetRef}>
             {isPremiumLocked ? (
               <>
                 <Text style={[styles.promptText, styles.blurredText, { color: colors.text }]} numberOfLines={4}>
@@ -370,7 +371,8 @@ export default function PromptDetailScreen() {
                 <BlurView
                   intensity={isDark ? 60 : 50}
                   tint={isDark ? 'dark' : 'light'}
-                  experimentalBlurMethod="dimezisBlurView"
+                  blurMethod="dimezisBlurView"
+                  blurTarget={blurTargetRef}
                   style={styles.blurOverlay}
                 >
                   <TouchableOpacity
@@ -399,7 +401,8 @@ export default function PromptDetailScreen() {
                 <BlurView
                   intensity={isDark ? 55 : 45}
                   tint={isDark ? 'dark' : 'light'}
-                  experimentalBlurMethod="dimezisBlurView"
+                  blurMethod="dimezisBlurView"
+                  blurTarget={blurTargetRef}
                   style={styles.blurOverlay}
                 >
                   <TouchableOpacity
