@@ -3,49 +3,58 @@
  *
  * Warm orange/dark palette inspired by the onboarding design.
  * Both light and dark modes use orange as the primary accent.
+ *
+ * PRIMARY is the single source of truth for the brand accent. Use it for
+ * static styles (SplashScreen, ShareCard) that render before/without a
+ * theme context; everywhere else prefer `colors.primary`.
  */
+export const PRIMARY = '#EE6123';
+
+/** Primary with alpha — for glows, tints, and borders. */
+export const withPrimaryOpacity = (opacity: number): string =>
+  `rgba(238, 97, 35, ${opacity})`;
 
 const lightColors = {
-  // Base colors
-  background: '#FFFBF5',
-  foreground: '#1A0A00',
+  // Base colors — matching admin panel light mode
+  background: '#FFFFFF',
+  foreground: '#2B2B2B',
 
   // Card colors
   card: '#FFFFFF',
-  cardForeground: '#1A0A00',
+  cardForeground: '#2B2B2B',
 
   // Popover colors
   popover: '#FFFFFF',
-  popoverForeground: '#1A0A00',
+  popoverForeground: '#2B2B2B',
 
-  // Primary — warm orange
-  primary: '#F26522',
+  // Primary — warm orange (admin panel primary)
+  primary: PRIMARY,
   primaryForeground: '#FFFFFF',
 
   // Secondary
-  secondary: '#FFF0E6',
-  secondaryForeground: '#8B4513',
+  secondary: '#F7F5F3',
+  secondaryForeground: '#7A4A2B',
 
   // Muted colors
-  muted: '#F5EDE6',
-  mutedForeground: '#8B7355',
+  muted: '#F4F2F0',
+  mutedForeground: '#8F8A84',
 
   // Accent colors
-  accent: '#FFF0E6',
-  accentForeground: '#8B4513',
+  accent: '#FDF0E7',
+  accentForeground: '#B44A1E',
 
   // Destructive colors
   destructive: '#DC3545',
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#E8DDD0',
-  input: '#E8DDD0',
-  ring: '#F26522',
+  border: '#E8E4E0',
+  input: '#E8E4E0',
+  ring: '#EE6123',
 
   // Text colors
-  text: '#1A0A00',
-  textMuted: '#8B7355',
+  text: '#2B2B2B',
+  textMuted: '#8F8A84',
 
   // Legacy support
   tint: '#F26522',
@@ -81,46 +90,46 @@ const lightColors = {
 };
 
 const darkColors = {
-  // Base colors — deep warm dark
-  background: '#0D0500',
-  foreground: '#FFF5EB',
+  // Base colors — deep warm dark matching the admin panel
+  background: '#141210',
+  foreground: '#EDE8E4',
 
   // Card colors
-  card: '#1C0E02',
-  cardForeground: '#FFF5EB',
+  card: '#211E1B',
+  cardForeground: '#EDE8E4',
 
   // Popover colors
-  popover: '#1C0E02',
-  popoverForeground: '#FFF5EB',
+  popover: '#211E1B',
+  popoverForeground: '#EDE8E4',
 
-  // Primary — bright warm orange
-  primary: '#FF7A2E',
+  // Primary — warm orange (admin panel primary oklch(0.6988 0.1843 49.1654) ≈ #E85D2A)
+  primary: PRIMARY,
   primaryForeground: '#FFFFFF',
 
   // Secondary
-  secondary: '#2A1A0A',
-  secondaryForeground: '#FFCBA4',
+  secondary: '#2B2723',
+  secondaryForeground: '#F5C9A8',
 
   // Muted colors
-  muted: '#2A1A0A',
-  mutedForeground: '#B8956A',
+  muted: '#2B2723',
+  mutedForeground: '#A89C90',
 
   // Accent colors
-  accent: '#2A1A0A',
-  accentForeground: '#FFCBA4',
+  accent: '#3A2418',
+  accentForeground: '#F5C9A8',
 
   // Destructive colors
   destructive: '#FF453A',
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#3D2510',
-  input: '#3D2510',
-  ring: '#FF7A2E',
+  border: '#37322D',
+  input: '#37322D',
+  ring: '#EE6123',
 
   // Text colors
-  text: '#FFF5EB',
-  textMuted: '#B8956A',
+  text: '#EDE8E4',
+  textMuted: '#A89C90',
 
   // Legacy support
   tint: '#FF7A2E',
@@ -132,7 +141,7 @@ const darkColors = {
   blue: '#4DABF7',
   green: '#51CF66',
   red: '#FF6B6B',
-  orange: '#FF7A2E',
+  orange: '#EE6123',
   yellow: '#FFD43B',
   pink: '#FF6B9D',
   purple: '#CC5DE8',
@@ -150,9 +159,9 @@ const darkColors = {
   errorForeground: '#ffffff',
 
   // Brand gradients (for reference)
-  gradientStart: '#FF7A2E',
-  gradientEnd: '#E85D1A',
-  gradientBg: '#0D0500',
+  gradientStart: '#EE6123',
+  gradientEnd: '#D14E15',
+  gradientBg: '#141210',
 };
 
 export const Colors = {

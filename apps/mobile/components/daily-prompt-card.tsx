@@ -1,14 +1,15 @@
 import { memo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Sun, Clock, ChevronRight } from 'lucide-react-native';
+import { Sun, Clock, ChevronRight, Flame } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors } from '@/theme/colors';
+import { Colors, PRIMARY, withPrimaryOpacity } from '@/theme/colors';
 import { formatTimeUntilRotation } from '@repo/shared/daily-prompt';
+import { SPRING } from '@/lib/animations';
 import type { Prompt } from '@repo/shared/types';
 
 interface DailyPromptCardProps {
@@ -20,9 +21,9 @@ interface DailyPromptCardProps {
 /**
  * Premium daily prompt card — featured at the top of the home screen.
  *
- * Has a special design with:
- * - Orange glow border
- * - "Daily Pick" badge with sun icon
+ * Design highlights:
+ * - Pulsing orange glow border
+ * - "Daily Pick" badge with flame
  * - Countdown timer to next rotation
  * - Full-width cinematic image
  */
@@ -51,11 +52,12 @@ export const DailyPromptCard = memo(function DailyPromptCard({
   };
 
   return (
-    <Animated.View entering={FadeInDown.delay(100).springify().damping(15)}>
+    <Animated.View
+    >
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, { backgroundColor: colors.card }]}
         onPress={handlePress}
-        activeOpacity={0.9}
+        activeOpacity={0.92}
       >
         {/* Glow border effect */}
         <View style={styles.glowBorder} />
@@ -68,13 +70,13 @@ export const DailyPromptCard = memo(function DailyPromptCard({
             resizeMode="cover"
           />
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.7)']}
+            colors={['transparent', 'rgba(0,0,0,0.75)']}
             style={styles.imageGradient}
           />
 
           {/* Daily Pick badge */}
           <View style={styles.badge}>
-            <Sun size={12} color="#FF7A2E" />
+            <Flame size={12} color={PRIMARY} fill={PRIMARY} />
             <Text style={styles.badgeText}>Daily Pick</Text>
           </View>
 
@@ -87,7 +89,7 @@ export const DailyPromptCard = memo(function DailyPromptCard({
 
         {/* Content */}
         <View style={styles.content}>
-          <Text style={styles.promptText} numberOfLines={2}>
+          <Text style={[styles.promptText, { color: colorScheme === 'dark' ? '#EDE8E4' : '#1A0A00' }]} numberOfLines={2}>
             {prompt.text}
           </Text>
 
@@ -96,12 +98,14 @@ export const DailyPromptCard = memo(function DailyPromptCard({
               {categoryIcon && (
                 <Text style={styles.categoryIcon}>{categoryIcon}</Text>
               )}
-              <Text style={styles.categoryName}>{categoryName ?? 'Prompt'}</Text>
+              <Text style={[styles.categoryName, { color: colors.mutedForeground }]}>
+                {categoryName ?? 'Prompt'}
+              </Text>
             </View>
 
-            <View style={styles.ctaRow}>
+            <View style={[styles.ctaRow, { backgroundColor: withPrimaryOpacity(0.1) }]}>
               <Text style={styles.ctaText}>View Prompt</Text>
-              <ChevronRight size={14} color="#FF7A2E" />
+              <ChevronRight size={14} color={PRIMARY} strokeWidth={2.5} />
             </View>
           </View>
         </View>
@@ -112,27 +116,25 @@ export const DailyPromptCard = memo(function DailyPromptCard({
 
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 12,
-    marginBottom: 16,
-    borderRadius: 20,
+    marginHorizontal: 16,
+    marginBottom: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#1C0E02',
-    // Orange glow shadow
-    shadowColor: '#FF7A2E',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 4,
   },
   glowBorder: {
     ...StyleSheet.absoluteFill,
-    borderRadius: 20,
+    borderRadius: 24,
     borderWidth: 1.5,
-    borderColor: 'rgba(255,122,46,0.3)',
+    borderColor: withPrimaryOpacity(0.4),
   },
   imageWrap: {
     position: 'relative',
-    height: 200,
+    height: 220,
   },
   image: {
     width: '100%',
@@ -143,50 +145,50 @@ const styles = StyleSheet.create({
   },
   badge: {
     position: 'absolute',
-    top: 12,
-    left: 12,
+    top: 14,
+    left: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(13,5,0,0.7)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
+    gap: 6,
+    backgroundColor: 'rgba(13,5,0,0.75)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255,122,46,0.3)',
+    borderColor: withPrimaryOpacity(0.35),
   },
   badgeText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#FF7A2E',
+    color: PRIMARY,
     letterSpacing: 0.3,
   },
   countdown: {
     position: 'absolute',
-    top: 12,
-    right: 12,
+    top: 14,
+    right: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   countdownText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
-    color: 'rgba(255,255,255,0.8)',
+    color: 'rgba(255,255,255,0.85)',
   },
   content: {
-    padding: 16,
+    padding: 18,
   },
   promptText: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 17,
+    lineHeight: 26,
     fontWeight: '600',
-    color: '#FFF5EB',
-    marginBottom: 12,
+    marginBottom: 14,
+    letterSpacing: -0.2,
   },
   footer: {
     flexDirection: 'row',
@@ -196,24 +198,26 @@ const styles = StyleSheet.create({
   categoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   categoryIcon: {
-    fontSize: 14,
+    fontSize: 15,
   },
   categoryName: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '500',
-    color: '#B8956A',
   },
   ctaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
   },
   ctaText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FF7A2E',
+    fontSize: 13,
+    fontWeight: '700',
+    color: PRIMARY,
   },
 });

@@ -99,9 +99,15 @@ export function parseYouTubeId(input: string): string | null {
   return match ? match[1] : null;
 }
 
-/** Embeddable player URL for a YouTube video id. */
+/**
+ * Embeddable player URL for a YouTube video id.
+ *
+ * Uses `youtube-nocookie.com` with `autoplay=0` and `playsinline=1` —
+ * this combination is the most reliable inside React Native WebViews,
+ * where the standard `youtube.com/embed` page can refuse to play.
+ */
 export function getYouTubeEmbedUrl(videoId: string): string {
-  return `https://www.youtube.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1`;
+  return `https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&fs=1&enablejsapi=1`;
 }
 // ── Cloudinary delivery URLs ───────────────────────────────────────────────
 

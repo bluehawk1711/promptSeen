@@ -1,11 +1,12 @@
 import { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import Animated, { FadeInRight } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { TrendingUp } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
-import { Colors } from '@/theme/colors';
+import { Colors, PRIMARY } from '@/theme/colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { formatTrendingScore } from '@repo/shared/trending';
 import type { Prompt } from '@repo/shared/types';
@@ -17,8 +18,10 @@ interface TrendingCardProps {
   index: number;
 }
 
+const RANK_COLORS = ['#FFD700', '#C8C8D0', '#CD8A4A'] as const;
+
 /**
- * Horizontal trending prompt card — shows rank, image, title, and score.
+ * Horizontal trending prompt card — medal rank badge, image, title, and score.
  * Used in the horizontal "Trending Now" scroll section.
  */
 export const TrendingCard = memo(function TrendingCard({
@@ -37,11 +40,10 @@ export const TrendingCard = memo(function TrendingCard({
   };
 
   const isTop3 = rank <= 3;
-  const rankColors = ['#FFD700', '#C0C0C0', '#CD7F32'];
+  const rankColor = isTop3 ? RANK_COLORS[rank - 1] : undefined;
 
   return (
     <Animated.View
-      entering={FadeInRight.delay(index * 80).springify().damping(15)}
       style={styles.wrapper}
     >
       <TouchableOpacity
@@ -49,25 +51,6 @@ export const TrendingCard = memo(function TrendingCard({
         onPress={handlePress}
         activeOpacity={0.85}
       >
-        {/* Rank badge */}
-        <View
-          style={[
-            styles.rankBadge,
-            {
-              backgroundColor: isTop3 ? rankColors[rank - 1] : colors.muted,
-            },
-          ]}
-        >
-          <Text
-            style={[
-              styles.rankText,
-              { color: isTop3 ? '#000' : colors.text },
-            ]}
-          >
-            {rank}
-          </Text>
-        </View>
-
         {/* Image */}
         <View style={styles.imageWrap}>
           <Image
@@ -75,6 +58,25 @@ export const TrendingCard = memo(function TrendingCard({
             style={styles.image}
             resizeMode="cover"
           />
+
+          {/* Rank badge — medal style for top 3 */}
+          <View
+            style={[
+              styles.rankBadge,
+              rankColor != null
+                ? { backgroundColor: rankColor }
+                : { backgroundColor: 'rgba(0,0,0,0.55)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+            ]}
+          >
+            <Text
+              style={[
+                styles.rankText,
+                { color: rankColor != null ? '#000' : '#fff' },
+              ]}
+            >
+              {rank}
+            </Text>
+          </View>
         </View>
 
         {/* Info */}
@@ -83,7 +85,7 @@ export const TrendingCard = memo(function TrendingCard({
             {prompt.text}
           </Text>
           <View style={styles.scoreRow}>
-            <TrendingUp size={10} color="#FF7A2E" />
+            <TrendingUp size={10} color={PRIMARY} strokeWidth={2.5} />
             <Text style={styles.score}>{formatTrendingScore(score)}</Text>
           </View>
         </View>
@@ -92,49 +94,54 @@ export const TrendingCard = memo(function TrendingCard({
   );
 });
 
-const CARD_WIDTH = 160;
+const CARD_WIDTH = 170;
 
 const styles = StyleSheet.create({
   wrapper: {
     width: CARD_WIDTH,
-    marginRight: 10,
+    marginRight: 12,
   },
   card: {
     width: CARD_WIDTH,
-    borderRadius: 14,
+    borderRadius: 18,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   rankBadge: {
     position: 'absolute',
-    top: 8,
-    left: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    top: 10,
+    left: 10,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 2,
   },
   rankText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '800',
   },
   imageWrap: {
     width: '100%',
-    height: 100,
+    height: 110,
   },
   image: {
     width: '100%',
     height: '100%',
   },
   info: {
-    padding: 10,
+    padding: 12,
   },
   title: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    lineHeight: 17,
-    marginBottom: 4,
+    lineHeight: 18,
+    marginBottom: 6,
   },
   scoreRow: {
     flexDirection: 'row',
@@ -142,8 +149,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   score: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#FF7A2E',
+    fontSize: 11,
+    fontWeight: '700',
+    color: PRIMARY,
   },
 });

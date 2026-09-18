@@ -1,15 +1,19 @@
 import { memo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { View, Text, StyleSheet, Image, TouchableOpacity as RNTouchableOpacity } from 'react-native';
+import { TouchableOpacity } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Heart, Copy, Star, Play } from 'lucide-react-native';
+import { Heart, Star, Play, Copy } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/theme/colors';
 import { useFavoritesStore } from '@/store/favorites';
+import { usePromptsStore } from '@/store/prompts';
+import { useCategoriesStore } from '@/store/categories';
 import { trackEvent, trackStat } from '@/lib/analytics';
+import { LikeButton } from '@/components/animated';
 import type { Prompt } from '@repo/shared/types';
 
 interface PromptCardProps {
@@ -20,8 +24,8 @@ interface PromptCardProps {
 }
 
 /**
- * Premium prompt card — cinematic image with gradient overlay,
- * glass-morphism like button, and haptic feedback.
+ * Premium prompt card — full-bleed image with gradient overlay,
+ * springy press physics, heart burst like button, and cinematic feel.
  */
 export const PromptCard = memo(function PromptCard({
   prompt,
@@ -30,9 +34,12 @@ export const PromptCard = memo(function PromptCard({
   compact = false,
 }: PromptCardProps) {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme];
+  const colors = Colors[useColorScheme()];
   const { toggleLike } = useFavoritesStore();
+  const { incrementLikes, decrementLikes } = usePromptsStore();
+  const { getCategoryById } = useCategoriesStore();
+
+  const category = getCategoryById(prompt.categoryIds?.[0]);
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -42,168 +49,231 @@ export const PromptCard = memo(function PromptCard({
   const handleLikePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const wasLiked = toggleLike(prompt.id);
+    if (wasLiked) {
+      incrementLikes(prompt.id);
+    } else {
+      decrementLikes(prompt.id);
+    }
     trackEvent(wasLiked ? 'prompt_like' : 'prompt_unlike', { promptId: prompt.id });
     if (wasLiked) trackStat('likes');
   };
 
   return (
     <Animated.View
-      entering={FadeInDown.delay(index * 60).springify().damping(18)}
       style={[styles.wrapper, compact && styles.wrapperCompact]}
     >
-      <TouchableOpacity
-        style={[
-          styles.card,
-          {
-            backgroundColor: colors.card,
-            shadowColor: colors.text,
-          },
-        ]}
-        onPress={handlePress}
-        activeOpacity={0.85}
-      >
-        {/* Image with gradient overlay */}
-        <View style={styles.imageWrap}>
-          <Image
-            source={{ uri: prompt.imageUrl }}
-            style={[styles.image, compact && styles.imageCompact]}
-            resizeMode="cover"
-          />
-          {/* Gradient overlay at bottom */}
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.7)']}
-            style={styles.gradient}
-          />
-
-          {/* Like button — glass style */}
-          <TouchableOpacity
-            style={styles.likeBtn}
-            onPress={handleLikePress}
-            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          >
-            <Heart
-              size={16}
-              color={isLiked ? '#FF3B30' : '#fff'}
-              fill={isLiked ? '#FF3B30' : 'transparent'}
-              strokeWidth={2.5}
+      {/* Card shell — position:relative anchor. The like button is a SIBLING
+          overlay (not a nested touchable) so its absolute top-right placement
+          can never be hijacked by the card's gesture handler. */}
+      <View style={styles.cardShell}>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            {
+              backgroundColor: colors.card,
+              shadowColor: '#000',
+            },
+          ]}
+          onPress={handlePress}
+          activeOpacity={0.85}
+        >
+          {/* Full-bleed image */}
+          <View style={styles.imageWrap}>
+            {prompt.imageUrl ? (
+              <Image
+                source={{ uri: prompt.imageUrl }}
+                style={[styles.image, compact && styles.imageCompact]}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.image, compact && styles.imageCompact, { backgroundColor: 'rgba(255,255,255,0.05)' }]} />
+            )}
+            {/* Gradient overlay at bottom */}
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.85)']}
+              style={styles.gradient}
+              pointerEvents="none"
             />
-          </TouchableOpacity>
 
-          {/* Premium badge */}
-          {prompt.isPremium && (
-            <View style={styles.premiumBadge}>
-              <Star size={10} color="#000" fill="#000" />
-              <Text style={styles.premiumText}>PRO</Text>
-            </View>
-          )}
+            {/* Category badge — bottom left, glassy */}
+            {category && (
+              <View style={[styles.categoryBadge, { borderColor: 'rgba(255,255,255,0.22)' }]} pointerEvents="none">
+                <Text style={styles.categoryBadgeText} numberOfLines={1}>
+                  {category.name}
+                </Text>
+              </View>
+            )}
 
-          {/* Video badge */}
-          {prompt.video && (
-            <View style={styles.videoBadge}>
-              <Play size={9} color="#fff" fill="#fff" />
-              <Text style={styles.videoBadgeText}>VIDEO</Text>
-            </View>
-          )}
+            {/* Premium badge — top left */}
+            {prompt.isPremium && (
+              <View style={styles.premiumBadge} pointerEvents="none">
+                <Star size={10} color="#000" fill="#000" />
+                <Text style={styles.premiumText}>PRO</Text>
+              </View>
+            )}
 
-          {/* Likes count overlay */}
-          <View style={styles.likesOverlay}>
-            <Heart size={10} color="#fff" fill="#fff" />
-            <Text style={styles.likesText}>
-              {prompt.likesCount > 999
-                ? `${(prompt.likesCount / 1000).toFixed(1)}k`
-                : prompt.likesCount}
-            </Text>
+            {/* Video badge */}
+            {prompt.video && (
+              <View style={styles.videoBadge} pointerEvents="none">
+                <Play size={9} color="#fff" fill="#fff" />
+                <Text style={styles.videoBadgeText}>VIDEO</Text>
+              </View>
+            )}
           </View>
-        </View>
 
-        {/* Text content */}
-        <View style={styles.textContainer}>
-          <Text
-            style={[styles.text, { color: colors.text }]}
-            numberOfLines={compact ? 2 : 3}
-          >
-            {prompt.text}
-          </Text>
+          {/* Text content */}
+          <View style={styles.textContainer}>
+            <Text
+              style={[styles.text, { color: colors.text }]}
+              numberOfLines={2}
+            >
+              {prompt.text}
+            </Text>
 
-          {/* Tags row */}
-          {prompt.tags.length > 0 && (
-            <View style={styles.tagsRow}>
-              {prompt.tags.slice(0, 2).map((tag) => (
-                <View
-                  key={tag}
-                  style={[styles.tag, { backgroundColor: colors.muted }]}
-                >
-                  <Text style={[styles.tagText, { color: colors.mutedForeground }]}>
-                    {tag}
+            {/* Stats row */}
+            <View style={styles.statsRow}>
+              <View style={styles.statItem}>
+                <Heart
+                  size={11}
+                  color={colors.mutedForeground}
+                  fill={colors.mutedForeground}
+                />
+                <Text style={[styles.statText, { color: colors.mutedForeground }]}>
+                  {formatCount(prompt.likesCount)}
+                </Text>
+              </View>
+              {prompt.copiesCount > 0 && (
+                <View style={styles.statItem}>
+                  <Copy size={11} color={colors.mutedForeground} />
+                  <Text style={[styles.statText, { color: colors.mutedForeground }]}>
+                    {formatCount(prompt.copiesCount)}
                   </Text>
                 </View>
-              ))}
+              )}
             </View>
-          )}
-        </View>
-      </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+
+        {/* Like button — SIBLING overlay, absolute top-right of the shell.
+            The image is full-bleed at the top of the card, so this is exactly
+            the top-right corner of the image. Core RN touchable so it cannot
+            conflict with the card's gesture-handler press. */}
+        <RNTouchableOpacity
+          style={styles.likeBtn}
+          onPress={handleLikePress}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          activeOpacity={0.8}
+        >
+          <LikeButton
+            isLiked={isLiked}
+            onToggle={handleLikePress}
+            size={15}
+            likeColor="#FF4B4B"
+            defaultColor="#FFFFFF"
+          />
+        </RNTouchableOpacity>
+      </View>
     </Animated.View>
   );
 });
 
+/** Compact number formatting: 1.2k, 3.4M. */
+function formatCount(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
+}
+
 const styles = StyleSheet.create({
   wrapper: {
-    width: '48%',
-    marginBottom: 12,
+    flex: 1,
+    maxWidth: '100%',
+    marginBottom: 16,
+    paddingHorizontal: 6,
   },
   wrapperCompact: {
-    marginBottom: 8,
+    marginBottom: 10,
+  },
+  cardShell: {
+    position: 'relative',
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   card: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    // Premium shadow
+    backgroundColor: 'rgba(30,24,18,0.65)',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
     elevation: 4,
   },
   imageWrap: {
     position: 'relative',
+    width: '100%',
   },
   image: {
     width: '100%',
-    height: 180,
+    height: 240,
+    resizeMode: 'cover',
   },
   imageCompact: {
-    height: 130,
+    height: 170,
   },
   gradient: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 60,
+    height: 100,
+  },
+  categoryBadge: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    backgroundColor: 'rgba(22,14,8,0.45)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  categoryBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 0.2,
   },
   likeBtn: {
     position: 'absolute',
     top: 10,
     right: 10,
+    zIndex: 10,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(20,12,6,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
-    // Glass effect
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.25)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
   },
   premiumBadge: {
     position: 'absolute',
-    top: 10,
-    left: 10,
+    top: 12,
+    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
+    gap: 4,
     backgroundColor: '#FFD60A',
     paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: 8,
   },
   premiumText: {
@@ -212,36 +282,17 @@ const styles = StyleSheet.create({
     color: '#000',
     letterSpacing: 0.5,
   },
-  likesOverlay: {
-    position: 'absolute',
-    bottom: 10,
-    right: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  likesText: {
-    fontSize: 11,
-    color: '#fff',
-    fontWeight: '600',
-  },
   videoBadge: {
     position: 'absolute',
-    bottom: 10,
-    left: 10,
+    top: 12,
+    left: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.55)',
     paddingHorizontal: 7,
     paddingVertical: 3,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.15)',
+    borderRadius: 6,
   },
   videoBadgeText: {
     fontSize: 8,
@@ -255,20 +306,22 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 13,
     lineHeight: 19,
-    fontWeight: '500',
+    fontWeight: '600',
+    letterSpacing: -0.1,
   },
-  tagsRow: {
+  statsRow: {
     flexDirection: 'row',
-    gap: 4,
+    alignItems: 'center',
+    gap: 10,
     marginTop: 8,
   },
-  tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+  statItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  tagText: {
-    fontSize: 10,
+  statText: {
+    fontSize: 11,
     fontWeight: '500',
   },
 });

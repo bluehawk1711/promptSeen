@@ -13,16 +13,15 @@
  * This eliminates redundant Firestore reads while keeping data fresh.
  */
 
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   collection,
   query,
   where,
   orderBy,
   limit as firestoreLimit,
-  startAfter,
   getDocs,
-  DocumentSnapshot,
 } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { usePromptsStore } from '@/store/prompts';
@@ -35,20 +34,8 @@ import { getTrendingPrompts, getTrendingScore } from '@repo/shared/trending';
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
-export const queryKeys = {
-  prompts: ['prompts'] as const,
-  promptDetail: (id: string) => ['prompts', id] as const,
-  relatedPrompts: (categoryId: string, excludeId: string) =>
-    ['prompts', 'related', categoryId, excludeId] as const,
-  categories: ['categories'] as const,
-  dailyPrompt: ['prompts', 'daily'] as const,
-  trending: ['prompts', 'trending'] as const,
-  favorites: (likedIds: string[]) => ['prompts', 'favorites', likedIds.sort().join(',')] as const,
-  collections: (userId: string) => ['collections', userId] as const,
-  publicCollections: ['collections', 'public'] as const,
-  submissions: (userId: string) => ['submissions', userId] as const,
-  submissionStats: (userId: string) => ['submissions', 'stats', userId] as const,
-} as const;
+import { queryKeys as _queryKeys } from '@/lib/query-keys';
+export const queryKeys = _queryKeys;
 
 // ─── Invalidation Helper ────────────────────────────────────────────────────
 
@@ -94,7 +81,7 @@ export function usePromptsQuery() {
     queryKey: queryKeys.prompts,
     queryFn: () => prompts,
     enabled: !loading,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -109,62 +96,58 @@ export function usePromptQuery(id: string) {
     queryKey: queryKeys.promptDetail(id),
     queryFn: () => prompts.find((p) => p.id === id),
     enabled: !loading && !!id,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
 /**
- * Get related prompts for a category with pagination (infinite scroll).
- * Fetches 10 items initially, then 10 more on each page.
- *
- * This replaces the old `.slice(0, 6)` in the prompt detail screen.
+ * Get related prompts — sourced from the realtime local store with
+ * incremental "load more" paging. No direct Firestore reads needed:
+ * the root listener already syncs all prompts, so we page through
+ * them client-side. This avoids composite-index requirements and
+ * works instantly offline.
  */
 export function useRelatedPromptsQuery(categoryId: string, excludeId: string) {
-  return useInfiniteQuery({
-    queryKey: queryKeys.relatedPrompts(categoryId, excludeId),
-    queryFn: async ({ pageParam }) => {
-      const PAGE_SIZE = 10;
+  const allPrompts = usePromptsStore((s) => s.prompts);
+  const storeLoading = usePromptsStore((s) => s.loading);
 
-      let q;
-      if (pageParam) {
-        q = query(
-          collection(db, 'prompts'),
-          where('categoryIds', 'array-contains', categoryId),
-          where('isActive', '==', true),
-          orderBy('order', 'asc'),
-          startAfter(pageParam),
-          firestoreLimit(PAGE_SIZE)
-        );
-      } else {
-        q = query(
-          collection(db, 'prompts'),
-          where('categoryIds', 'array-contains', categoryId),
-          where('isActive', '==', true),
-          orderBy('order', 'asc'),
-          firestoreLimit(PAGE_SIZE)
-        );
-      }
+  const PAGE_SIZE = 10;
 
-      const snapshot = await getDocs(q);
-      const prompts: Prompt[] = snapshot.docs
-        .map((d) => ({ id: d.id, ...d.data() } as Prompt))
-        .filter((p) => p.id !== excludeId);
+  // All prompts in this category, ordered, excluding the current one.
+  const categoryPrompts = useMemo(() => {
+    if (!categoryId) return [];
+    return allPrompts
+      .filter(
+        (p) =>
+          p.isActive &&
+          p.id !== excludeId &&
+          p.categoryIds?.includes(categoryId)
+      )
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  }, [allPrompts, categoryId, excludeId]);
 
-      const lastDoc = snapshot.docs[snapshot.docs.length - 1];
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-      return {
-        prompts,
-        nextPageParam: snapshot.docs.length === PAGE_SIZE ? lastDoc : undefined,
-        hasMore: snapshot.docs.length === PAGE_SIZE,
-      };
-    },
-    getNextPageParam: (lastPage) => lastPage.nextPageParam,
-    initialPageParam: undefined as DocumentSnapshot | undefined,
-    staleTime: 2.5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  // Reset paging when switching prompts
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [categoryId, excludeId]);
+
+  const data = useMemo(
+    () => categoryPrompts.slice(0, visibleCount),
+    [categoryPrompts, visibleCount]
+  );
+
+  return {
+    data,
+    fetchNextPage: useCallback(() => {
+      setVisibleCount((n) => n + PAGE_SIZE);
+    }, []),
+    hasNextPage: visibleCount < categoryPrompts.length,
+    isFetchingNextPage: false,
+    isLoading: storeLoading,
+  };
 }
-
 /**
  * Get today's daily prompt from the store.
  */
@@ -179,7 +162,7 @@ export function useDailyPromptQuery() {
       return getDailyPrompt(active);
     },
     enabled: !loading,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -204,7 +187,7 @@ export function useTrendingQuery(count = 10) {
       }));
     },
     enabled: !loading && !dailyPrompt.isLoading,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -221,7 +204,7 @@ export function useCategoriesQuery() {
     queryKey: queryKeys.categories,
     queryFn: () => categories.filter((c) => c.isActive),
     enabled: !loading,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -238,7 +221,7 @@ export function useCollectionsQuery(userId: string) {
     queryKey: queryKeys.collections(userId),
     queryFn: () => collections,
     enabled: !loading && !!userId,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -255,7 +238,7 @@ export function useSubmissionsQuery(userId: string) {
     queryKey: queryKeys.submissions(userId),
     queryFn: () => mySubmissions,
     enabled: !loading && !!userId,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -271,6 +254,6 @@ export function useSubmissionStatsQuery(userId: string) {
     queryKey: queryKeys.submissionStats(userId),
     queryFn: getMyStats,
     enabled: !loading && !!userId,
-    staleTime: 2.5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000,
   });
 }

@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/splash.png"
       },
       "predictiveBackGestureEnabled": true,
-      "package": "com.promptgallery.app"
+      "package": "com.promptgallery.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -35,7 +36,7 @@
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-3940256099942544~3347511713",
-          "iosAppId": "ca-app-pub-3940256099942544~1458002511"
+          "iosAppId": "ca-app-pub-3940256099942544~1458001516"
         }
       ],
       [
@@ -68,6 +69,13 @@
           "photosPermission": "Allow $(PRODUCT_NAME) to access your photos.",
           "savePhotosPermission": "Allow $(PRODUCT_NAME) to save photos.",
           "isAccessMediaLocationEnabled": true
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#EE6123"
         }
       ]
     ],

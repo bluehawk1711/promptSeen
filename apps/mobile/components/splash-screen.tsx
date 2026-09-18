@@ -1,8 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, Dimensions, StatusBar } from 'react-native';
 import Animated, {
-  FadeIn,
-  FadeInDown,
   FadeOut,
   interpolate,
   interpolateColor,
@@ -16,6 +14,8 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import * as SplashScreen from 'expo-splash-screen';
+
+import { PRIMARY, withPrimaryOpacity } from '@/theme/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -36,8 +36,6 @@ interface SplashScreenProps {
  * - Smooth fade out before transitioning to the app
  */
 export function AnimatedSplashScreen({ onFinish }: SplashScreenProps) {
-  const [visible, setVisible] = useState(true);
-
   // Glow pulse animation
   const glowScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.3);
@@ -68,24 +66,18 @@ export function AnimatedSplashScreen({ onFinish }: SplashScreenProps) {
     };
     hideNative();
 
-    // Auto-dismiss after delay
+    // Auto-dismiss after delay — call onFinish so SplashProvider renders children
     const timer = setTimeout(() => {
-      setVisible(false);
+      onFinish();
     }, 2200);
 
     return () => clearTimeout(timer);
-  }, []);
-
-  const handleFadeOutComplete = useCallback(() => {
-    onFinish();
   }, [onFinish]);
 
   const glowAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: glowScale.value }],
     opacity: glowOpacity.value,
   }));
-
-  if (!visible) return null;
 
   return (
     <Animated.View
@@ -105,7 +97,6 @@ export function AnimatedSplashScreen({ onFinish }: SplashScreenProps) {
 
         {/* Logo container */}
         <Animated.View
-          entering={FadeIn.delay(200).duration(800)}
           style={styles.logoContainer}
         >
           <View style={styles.logoCircle}>
@@ -114,21 +105,21 @@ export function AnimatedSplashScreen({ onFinish }: SplashScreenProps) {
         </Animated.View>
 
         {/* App name */}
-        <Animated.View entering={FadeInDown.delay(600).duration(600)}>
+        <Animated.View>
           <Text style={styles.appName}>
             Prompt<Text style={styles.appNameHighlight}>Seen</Text>
           </Text>
         </Animated.View>
 
         {/* Tagline */}
-        <Animated.View entering={FadeInDown.delay(900).duration(600)}>
+        <Animated.View>
           <Text style={styles.tagline}>
             Curated AI Prompts
           </Text>
         </Animated.View>
 
         {/* Loading indicator */}
-        <Animated.View entering={FadeIn.delay(1200).duration(400)}>
+        <Animated.View>
           <View style={styles.loadingDots}>
             {[0, 1, 2].map((i) => (
               <LoadingDot key={i} index={i} />
@@ -193,7 +184,7 @@ export function SplashProvider({ children }: { children: React.ReactNode }) {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#0D0500',
+    backgroundColor: '#141210',
     zIndex: 9999,
   },
 
@@ -205,7 +196,7 @@ const styles = StyleSheet.create({
     width: 350,
     height: 350,
     borderRadius: 175,
-    backgroundColor: 'rgba(255,122,46,0.08)',
+    backgroundColor: withPrimaryOpacity(0.08),
   },
   orbBottomLeft: {
     position: 'absolute',
@@ -230,7 +221,7 @@ const styles = StyleSheet.create({
     width: 180,
     height: 180,
     borderRadius: 90,
-    backgroundColor: 'rgba(255,122,46,0.2)',
+    backgroundColor: withPrimaryOpacity(0.2),
   },
   logoContainer: {
     marginBottom: 24,
@@ -239,14 +230,14 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 28,
-    backgroundColor: '#FF7A2E',
+    backgroundColor: PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF7A2E',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 24,
-    elevation: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
   logoText: {
     fontSize: 38,
@@ -259,19 +250,19 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 32,
     fontWeight: '800',
-    color: '#FFF5EB',
+    color: '#EDE8E4',
     letterSpacing: -0.5,
     marginBottom: 8,
   },
   appNameHighlight: {
-    color: '#FF7A2E',
+    color: PRIMARY,
   },
 
   // Tagline
   tagline: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#B8956A',
+    color: '#A89C90',
     letterSpacing: 0.5,
     marginBottom: 40,
   },
@@ -282,9 +273,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#FF7A2E',
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: PRIMARY,
   },
 });

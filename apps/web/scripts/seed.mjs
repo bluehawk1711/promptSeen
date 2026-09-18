@@ -279,10 +279,56 @@ async function seed() {
     batch.set(ref, { ...notifications[i], createdAt: Date.now() - i * 86400000 });
   }
 
-  // Seed settings
+  // Seed settings — notifications + app remote config
   console.log("⚙️  Seeding settings...");
-  const settingsRef = db.collection("settings").doc("notifications");
-  batch.set(settingsRef, { autoNotifyNewPrompt: true }, { merge: true });
+  const notifSettingsRef = db.collection("settings").doc("notifications");
+  batch.set(notifSettingsRef, { autoNotifyNewPrompt: true }, { merge: true });
+
+  const appSettingsRef = db.collection("settings").doc("app");
+  batch.set(
+    appSettingsRef,
+    {
+      latestVersion: "1.0.0",
+      minVersion: "1.0.0",
+      playStoreUrl: "",
+      appStoreUrl: "",
+      updateMode: "none",
+      aboutText:
+        "Prompt Seen is your intelligent AI companion designed to help you explore, create, and innovate. Powered by cutting-edge AI technology.",
+      supportEmail: "support@tsprompt.com",
+      socialLinks: [
+        {
+          id: "social-telegram",
+          platform: "telegram",
+          label: "Telegram",
+          subtitle: "Join our Telegram channel",
+          url: "https://t.me/tsprompt",
+          order: 0,
+          isActive: true,
+        },
+        {
+          id: "social-instagram",
+          platform: "instagram",
+          label: "Instagram",
+          subtitle: "Follow us on Instagram",
+          url: "https://instagram.com/tsprompt",
+          order: 1,
+          isActive: true,
+        },
+        {
+          id: "social-whatsapp",
+          platform: "whatsapp",
+          label: "WhatsApp",
+          subtitle: "Join our WhatsApp channel",
+          url: "https://whatsapp.com/channel/tsprompt",
+          order: 2,
+          isActive: true,
+        },
+      ],
+      updatedAt: Date.now(),
+    },
+    { merge: true }
+  );
 
   // Commit batch
   console.log("\n⏳ Committing batch...");
@@ -295,10 +341,9 @@ async function seed() {
   console.log(`   - 1 admin user (admin@tsprompt.com)`);
   console.log(`   - ${users.length} sample users`);
   console.log(`   - ${submissions.length} submissions`);
-  console.log(`   - 14 days of daily stats`);
-  console.log(`   - ${tokens.length} FCM tokens`);
-  console.log(`   - ${notifications.length} push notifications`);
-  console.log(`   - 1 settings document\n`);
+  console.log(`   - 14 days of daily stats`);    console.log(`   - ${tokens.length} FCM tokens`);
+    console.log(`   - ${notifications.length} push notifications`);
+    console.log(`   - 2 settings documents (notifications + app config)\n`);
 }
 
 seed().catch((error) => {

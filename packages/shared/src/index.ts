@@ -18,6 +18,9 @@ export type {
    BackupData,
    AdType,
    AdConfig,
+   // App settings / remote config
+   AppSettings,
+   SocialLink,
    // Collections
    Collection,
    CollectionCreateInput,
@@ -33,6 +36,14 @@ export type {
    PushNotification,
    NotificationPreferences,
 } from './types';
+export { APP_NAME, APP_TAGLINE, DEFAULT_APP_SETTINGS } from './types';
+
+// ─── App Update (force update) ────────────────────────────────────────
+export {
+   compareVersions,
+   getUpdateRequirement,
+   type UpdateRequirement,
+} from './app-update';
 
 // ─── Config ─────────────────────────────────────────────────────────────────
 export { loadFirebaseConfig } from './config';

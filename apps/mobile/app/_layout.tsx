@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/providers/theme-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { useOnboardingStore } from '@/store/onboarding';
 import { SplashProvider } from '@/components/splash-screen';
+import { ForceUpdateGate } from '@/components/force-update';
 import {
   configureNotificationHandler,
   registerForPushNotifications,
@@ -25,7 +26,11 @@ import {
 } from '@/store/categories';
 
 // Configure notification appearance when app is in foreground
-configureNotificationHandler();
+try {
+  configureNotificationHandler();
+} catch {
+  // expo-notifications not configured — skip
+}
 
 /**
  * Root layout — splash → Firestore → notifications → navigation.
@@ -70,49 +75,58 @@ function AppContent() {
 
   // ── Push Notifications ──────────────────────────────────────────────────
   useEffect(() => {
-    // Register for push notifications after a short delay
-    // (don't block the initial render)
-    const timer = setTimeout(() => {
-      registerForPushNotifications();
-    }, 2000);
+    let cleanup: (() => void) | undefined;
 
-    // Set up notification listeners
-    setupNotificationListeners((promptId) => {
-      // Deep link to prompt detail when notification is tapped
-      if (promptId) {
-        router.push(`/prompt/${promptId}`);
-      }
-    });
+    try {
+      // Register for push notifications after a short delay
+      // (don't block the initial render)
+      const timer = setTimeout(() => {
+        registerForPushNotifications();
+      }, 2000);
 
-    // Clear badge when app opens
-    clearBadgeCount();
+      // Set up notification listeners
+      setupNotificationListeners((promptId) => {
+        if (promptId) {
+          router.push(`/prompt/${promptId}`);
+        }
+      });
 
-    return () => {
-      clearTimeout(timer);
-      removeNotificationListeners();
-    };
+      // Clear badge when app opens
+      clearBadgeCount();
+
+      cleanup = () => {
+        clearTimeout(timer);
+        removeNotificationListeners();
+      };
+    } catch {
+      // Firebase or notifications not configured — skip silently
+    }
+
+    return () => cleanup?.();
   }, []);
 
   return (
     <SafeAreaProvider>
       <ThemeProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen
-            name="prompt/[id]"
-            options={{
-              presentation: 'card',
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="onboarding"
-            options={{
-              presentation: 'modal',
-              gestureEnabled: false,
-            }}
-          />
-        </Stack>
+        <ForceUpdateGate>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen
+              name="prompt/[id]"
+              options={{
+                presentation: 'card',
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="onboarding"
+              options={{
+                presentation: 'modal',
+                gestureEnabled: false,
+              }}
+            />
+          </Stack>
+        </ForceUpdateGate>
         <StatusBar style="light" />
       </ThemeProvider>
     </SafeAreaProvider>

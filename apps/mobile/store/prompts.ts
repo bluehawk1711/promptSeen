@@ -19,7 +19,7 @@ import type { Prompt } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
 import { getDailyPrompt } from '@repo/shared/daily-prompt';
 import { getQueryClient } from '@/providers/query-provider';
-import { queryKeys } from '@/lib/queries';
+import { queryKeys } from '@/lib/query-keys';
 
 interface PromptsState {
   prompts: Prompt[];
@@ -37,6 +37,8 @@ interface PromptsState {
   getDailyPrompt: () => Prompt | null;
   /** Increment the local like count (optimistic). */
   incrementLikes: (promptId: string) => void;
+  /** Decrement the local like count (optimistic unlike). */
+  decrementLikes: (promptId: string) => void;
   /** Increment the local copy count (optimistic). */
   incrementCopies: (promptId: string) => void;
   /** Increment the local share count (optimistic). */
@@ -44,6 +46,7 @@ interface PromptsState {
 }
 
 let unsubscribe: Unsubscribe | null = null;
+let loadingTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const usePromptsStore = create<PromptsState>((set, get) => ({
   prompts: [],
@@ -72,6 +75,13 @@ export const usePromptsStore = create<PromptsState>((set, get) => ({
       ),
     })),
 
+  decrementLikes: (promptId) =>
+    set((state) => ({
+      prompts: state.prompts.map((p) =>
+        p.id === promptId ? { ...p, likesCount: Math.max(0, p.likesCount - 1) } : p
+      ),
+    })),
+
   incrementCopies: (promptId) =>
     set((state) => ({
       prompts: state.prompts.map((p) =>
@@ -93,6 +103,14 @@ export const usePromptsStore = create<PromptsState>((set, get) => ({
  */
 export function subscribeToPrompts(): Unsubscribe {
   unsubscribe?.();
+  if (loadingTimeout) clearTimeout(loadingTimeout);
+
+  // Fallback: stop showing loading spinner after 5s even if Firestore hasn't responded
+  loadingTimeout = setTimeout(() => {
+    if (usePromptsStore.getState().loading) {
+      usePromptsStore.setState({ loading: false });
+    }
+  }, 5000);
 
   const q = query(
     collection(db, 'prompts'),
@@ -141,4 +159,8 @@ export function subscribeToPrompts(): Unsubscribe {
 export function unsubscribeFromPrompts(): void {
   unsubscribe?.();
   unsubscribe = null;
+  if (loadingTimeout) {
+    clearTimeout(loadingTimeout);
+    loadingTimeout = null;
+  }
 }

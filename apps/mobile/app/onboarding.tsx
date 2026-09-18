@@ -26,6 +26,7 @@ import Animated, {
 import { ArrowRight, Star, Heart } from 'lucide-react-native';
 
 import { useOnboardingStore } from '@/store/onboarding';
+import { PRIMARY, withPrimaryOpacity } from '@/theme/colors';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const AnimatedFlatList = Animated.createAnimatedComponent(Animated.ScrollView);
@@ -63,7 +64,7 @@ const SLIDES: Slide[] = [
     description:
       'Discover thousands of trending AI photo prompts for cinematic portraits, anime art, Instagram photos, and creative edits.',
     buttonText: 'Next Step',
-    glowColor: 'rgba(255,122,46,0.12)',
+    glowColor: withPrimaryOpacity(0.12),
     images: [
       { uri: 'https://picsum.photos/seed/ai1/400/500', rotation: -8, scale: 0.82, parallaxSpeed: 0.4, top: 50, left: 10, width: 155, height: 195 },
       { uri: 'https://picsum.photos/seed/ai2/400/500', rotation: 6, scale: 0.88, parallaxSpeed: 0.7, top: 25, left: 135, width: 148, height: 188 },
@@ -90,7 +91,7 @@ const SLIDES: Slide[] = [
     description:
       'Rate us please and support us! Your feedback helps other creators discover the app and helps us keep building great features.',
     buttonText: 'Get Started',
-    glowColor: 'rgba(255,122,46,0.15)',
+    glowColor: withPrimaryOpacity(0.15),
     images: [],
   },
 ];
@@ -386,13 +387,13 @@ function RateSlide({
         <Animated.View style={[styles.heartContainer, contentAnimatedStyle]}>
           <View style={styles.heartGlow} />
           <View style={styles.heartCircle}>
-            <Heart size={48} color="#FF7A2E" fill="#FF7A2E" />
+            <Heart size={48} color={PRIMARY} fill={PRIMARY} />
           </View>
         </Animated.View>
 
         <Animated.View style={[styles.starsRow, contentAnimatedStyle]}>
           {[1, 2, 3, 4, 5].map((i) => (
-            <Star key={i} size={28} color="#FF7A2E" fill="#FF7A2E" />
+            <Star key={i} size={28} color={PRIMARY} fill={PRIMARY} />
           ))}
         </Animated.View>
 
@@ -492,7 +493,7 @@ export default function OnboardingScreen() {
       const backgroundColor = interpolateColor(
         scrollX.value,
         inputRange,
-        ['rgba(255,122,46,0.25)', '#FF7A2E', 'rgba(255,122,46,0.25)']
+        [withPrimaryOpacity(0.25), PRIMARY, withPrimaryOpacity(0.25)]
       );
 
       return { width, backgroundColor };
@@ -579,7 +580,7 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0D0500',
+    backgroundColor: '#141210',
   },
 
   // Skip
@@ -591,7 +592,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   skipText: {
-    color: '#FF7A2E',
+    color: PRIMARY,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -617,19 +618,19 @@ const styles = StyleSheet.create({
   slideTitle: {
     fontSize: 30,
     fontWeight: '800',
-    color: '#FFF5EB',
+    color: '#EDE8E4',
     letterSpacing: -0.5,
     lineHeight: 36,
   },
 
   highlight: {
-    color: '#FF7A2E',
+    color: PRIMARY,
   },
 
   slideDescription: {
     fontSize: 15,
     lineHeight: 23,
-    color: '#B8956A',
+    color: '#A89C90',
     maxWidth: 340,
   },
 
@@ -638,7 +639,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#FF7A2E',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 16,
@@ -667,7 +668,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(255,122,46,0.2)',
+    borderColor: withPrimaryOpacity(0.2),
   },
 
   // Ambient glows
@@ -687,7 +688,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255,122,46,0.06)',
+    backgroundColor: withPrimaryOpacity(0.06),
   },
 
   // Rate slide
@@ -702,16 +703,16 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(255,122,46,0.2)',
+    backgroundColor: withPrimaryOpacity(0.2),
   },
 
   heartCircle: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: 'rgba(255,122,46,0.15)',
+    backgroundColor: withPrimaryOpacity(0.15),
     borderWidth: 2,
-    borderColor: 'rgba(255,122,46,0.3)',
+    borderColor: withPrimaryOpacity(0.3),
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -728,7 +729,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#FF7A2E',
+    backgroundColor: PRIMARY,
     marginHorizontal: 40,
     marginTop: 20,
     paddingVertical: 14,
@@ -749,7 +750,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255,122,46,0.08)',
+    backgroundColor: withPrimaryOpacity(0.08),
   },
 
   // Bottom
@@ -776,10 +777,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#FF7A2E',
+    backgroundColor: PRIMARY,
     paddingVertical: 18,
     borderRadius: 16,
-    shadowColor: '#FF7A2E',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4,
     shadowRadius: 16,

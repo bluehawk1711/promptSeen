@@ -426,6 +426,7 @@ Components using usePromptsQuery() re-render
 | `daily_stats` | App write, admin read | Aggregated daily metrics |
 | `fcm_tokens` | App write, admin read | Device FCM registration tokens |
 | `push_notifications` | Server write, admin read | Sent notification history |
+| `settings/app` | Admin write, public read via API | Remote app config: versions, force update, social links, about text |
 
 ### Security Rules
 
@@ -518,6 +519,45 @@ import {
   getEngagementRate,    // Calculate engagement rate
 } from '@repo/shared/analytics';
 ```
+
+---
+
+## App Settings & Force Update
+
+### Remote App Settings (`settings/app`)
+
+Configured in **Admin Panel → System → App Settings** (`/admin/app-settings`). The mobile app reads it via the public `GET /api/app-settings` endpoint.
+
+| Field | Purpose |
+|-------|---------|
+| `latestVersion` | Newest advertised version — drives the soft update banner |
+| `minVersion` | Minimum allowed version — drives the hard force-update gate |
+| `updateMode` | `none` (off), `soft` (dismissible banner), `hard` (blocking screen) |
+| `playStoreUrl` / `appStoreUrl` | Where users are sent to update |
+| `aboutText` | Shown in Profile → About |
+| `supportEmail` | Profile → Contact Support |
+| `socialLinks[]` | Profile → Connect With Us (Telegram, Instagram, WhatsApp, X, YouTube, Facebook, TikTok, Website) |
+
+### Force Update Flow
+
+1. App launches → `useAppSettingsStore.fetchSettings()` loads remote config
+2. `getUpdateRequirement(currentVersion, settings)` decides: `none` \| `soft` \| `hard`
+3. `hard` → the `ForceUpdateGate` component blocks the whole app with a non-dismissable update screen linking to the Play Store
+4. `soft` → a dismissible banner (not yet wired; the gate only blocks on `hard`)
+
+Version comparison is semantic and tolerant (`v1.2.3`, `1.2.3+19` all work) via `compareVersions` in `@repo/shared/app-update`.
+
+### Global Branding
+
+`APP_NAME` and `APP_TAGLINE` live in `packages/shared/src/types.ts`. Change them in one place to rebrand both the admin panel and the mobile app. Remote `aboutText` and social links come from Firestore.
+
+### YouTube Video Playback
+
+Prompt videos play through a local HTML page wrapping the `youtube-nocookie.com` iframe (see `apps/mobile/components/video-player.tsx`). This is the most reliable combination inside Android/iOS WebViews — do not navigate the WebView directly to `youtube.com/embed`, which can refuse to play.
+
+### Ad-Gated Copy
+
+**Copy Prompt plays a video (reward) ad first.** The prompt text is only copied after the ad completes (`RewardedAdEventType.EARNED_REWARD`). If the user closes the ad early, nothing is copied. Premium prompts additionally require unlocking.
 
 ---
 

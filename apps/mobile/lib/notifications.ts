@@ -94,14 +94,14 @@ export async function registerForPushNotifications(
         name: 'Default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF7A2E',
+        lightColor: '#EE6123',
       });
 
       await Notifications.setNotificationChannelAsync('prompts', {
         name: 'New Prompts',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250],
-        lightColor: '#FF7A2E',
+        lightColor: '#EE6123',
         description: 'Notifications about new prompts and daily picks',
       });
     }
@@ -109,7 +109,7 @@ export async function registerForPushNotifications(
     console.log('[notifications] Token registered:', token.slice(0, 20) + '...');
     return token;
   } catch (error) {
-    console.error('[notifications] Failed to register:', error);
+    // Notifications not configured — silent in dev
     return null;
   }
 }

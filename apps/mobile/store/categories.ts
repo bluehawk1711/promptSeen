@@ -14,7 +14,7 @@ import { db } from '@/lib/firebase';
 import type { Category } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
 import { getQueryClient } from '@/providers/query-provider';
-import { queryKeys } from '@/lib/queries';
+import { queryKeys } from '@/lib/query-keys';
 
 interface CategoriesState {
   categories: Category[];
@@ -27,6 +27,7 @@ interface CategoriesState {
 }
 
 let unsubscribe: Unsubscribe | null = null;
+let loadingTimeout: ReturnType<typeof setTimeout> | null = null;
 
 export const useCategoriesStore = create<CategoriesState>((set, get) => ({
   categories: [],
@@ -42,6 +43,13 @@ export const useCategoriesStore = create<CategoriesState>((set, get) => ({
 
 export function subscribeToCategories(): Unsubscribe {
   unsubscribe?.();
+  if (loadingTimeout) clearTimeout(loadingTimeout);
+
+  loadingTimeout = setTimeout(() => {
+    if (useCategoriesStore.getState().loading) {
+      useCategoriesStore.setState({ loading: false });
+    }
+  }, 5000);
 
   const q = query(
     collection(db, 'categories'),
@@ -84,4 +92,8 @@ export function subscribeToCategories(): Unsubscribe {
 export function unsubscribeFromCategories(): void {
   unsubscribe?.();
   unsubscribe = null;
+  if (loadingTimeout) {
+    clearTimeout(loadingTimeout);
+    loadingTimeout = null;
+  }
 }

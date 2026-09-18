@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import Animated, { FadeInRight } from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -38,7 +38,7 @@ export const CategoryChips = memo(function CategoryChips({
       contentContainerStyle={styles.container}
     >
       {/* All chip */}
-      <Animated.View entering={FadeInRight.delay(0).springify()}>
+      <Animated.View>
         <TouchableOpacity
           style={[
             styles.chip,
@@ -68,7 +68,6 @@ export const CategoryChips = memo(function CategoryChips({
       {activeCategories.map((cat, i) => (
         <Animated.View
           key={cat.id}
-          entering={FadeInRight.delay((i + 1) * 40).springify()}
         >
           <TouchableOpacity
             style={[
@@ -91,7 +90,7 @@ export const CategoryChips = memo(function CategoryChips({
                 },
               ]}
             >
-              {cat.icon} {cat.name}
+              {cat.name}
             </Text>
           </TouchableOpacity>
         </Animated.View>
@@ -102,16 +101,20 @@ export const CategoryChips = memo(function CategoryChips({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     gap: 8,
   },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 999,
+    backgroundColor: 'rgba(30,24,18,0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   chipText: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

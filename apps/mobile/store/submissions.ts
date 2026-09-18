@@ -20,7 +20,7 @@ import { db } from '@/lib/firebase';
 import type { PromptSubmission } from '@repo/shared/types';
 import { messageFor } from '@repo/shared/errors';
 import { getQueryClient } from '@/providers/query-provider';
-import { queryKeys } from '@/lib/queries';
+import { queryKeys } from '@/lib/query-keys';
 
 interface SubmissionsState {
   /** Current user's submissions. */

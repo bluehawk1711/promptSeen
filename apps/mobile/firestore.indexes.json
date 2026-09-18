@@ -20,6 +20,15 @@
       "collectionGroup": "prompts",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "categoryIds", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "isActive", "order": "ASCENDING" },
+        { "fieldPath": "order", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "prompts",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "isActive", "order": "ASCENDING" },
         { "fieldPath": "likesCount", "order": "DESCENDING" }
       ]

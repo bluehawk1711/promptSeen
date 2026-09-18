@@ -33,15 +33,18 @@ export function trackEvent(
   type: AnalyticsEventType,
   options?: TrackEventOptions
 ): void {
-  const userId = useAuthStore.getState().user?.uid ?? 'anonymous';
-
-  logAnalyticsEvent(db, {
-    type,
-    userId,
-    platform: 'mobile',
-    appVersion: APP_VERSION,
-    ...options,
-  }).catch(() => {});
+  try {
+    const userId = useAuthStore.getState().user?.uid ?? 'anonymous';
+    logAnalyticsEvent(db, {
+      type,
+      userId,
+      platform: 'mobile',
+      appVersion: APP_VERSION,
+      ...options,
+    }).catch(() => {});
+  } catch {
+    // Analytics not available — silent
+  }
 }
 
 /**
@@ -51,12 +54,20 @@ export function trackStat(
   field: Parameters<typeof incrementDailyStat>[1],
   amount?: number
 ): void {
-  incrementDailyStat(db, field, amount).catch(() => {});
+  try {
+    incrementDailyStat(db, field, amount).catch(() => {});
+  } catch {
+    // Silent
+  }
 }
 
 /**
  * Track unique active user for the day.
  */
 export function trackActiveUser(userId: string): void {
-  sharedTrackActiveUser(db, userId).catch(() => {});
+  try {
+    sharedTrackActiveUser(db, userId).catch(() => {});
+  } catch {
+    // Silent
+  }
 }

@@ -89,7 +89,7 @@ service cloud.firestore {
 
       // Active users subcollection for deduplication
       match /active_users/{userId} {
-        allow read: if isAdmin();
+        allow read: if true;
         allow create: if true;
         allow update, delete: if false;
       }

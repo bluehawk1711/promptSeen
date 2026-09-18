@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search, Bell, X, Sun, Moon, LayoutDashboard, FileText, Tags, MessageSquare, BarChart3, Users, Settings } from 'lucide-react'
+import { Search, Bell, X, Sun, Moon, LayoutDashboard, FileText, Tags, MessageSquare, BarChart3, Users, Settings, Smartphone } from 'lucide-react'
 import { useDashboardNavigation } from './navigation'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,7 @@ const navItems = [
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Notifications', href: '/admin/notifications', icon: Bell },
   { name: 'Users', href: '/admin/users', icon: Users },
+  { name: 'App Settings', href: '/admin/app-settings', icon: Smartphone },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 

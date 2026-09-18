@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { shareAsync } from 'expo-sharing';
 import { Heart, Copy, Sparkles } from 'lucide-react-native';
 import type { Prompt } from '@repo/shared/types';
+import { PRIMARY, withPrimaryOpacity } from '@/theme/colors';
 
 interface ShareCardProps {
   prompt: Prompt;
@@ -98,13 +99,13 @@ export const ShareCard = forwardRef<ShareCardHandle, ShareCardProps>(
 
               <View style={styles.statsRow}>
                 <View style={styles.statItem}>
-                  <Heart size={11} color="#B8956A" fill="#B8956A" />
+                  <Heart size={11} color="#A89C90" fill="#A89C90" />
                   <Text style={styles.statText}>
                     {prompt.likesCount.toLocaleString()}
                   </Text>
                 </View>
                 <View style={styles.statItem}>
-                  <Copy size={11} color="#B8956A" />
+                  <Copy size={11} color="#A89C90" />
                   <Text style={styles.statText}>
                     {prompt.copiesCount.toLocaleString()}
                   </Text>
@@ -137,7 +138,7 @@ const styles = StyleSheet.create({
     height: 500,
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#0D0500',
+    backgroundColor: '#141210',
   },
   backgroundImage: {
     ...StyleSheet.absoluteFill,
@@ -172,7 +173,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#FF7A2E',
+    backgroundColor: PRIMARY,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   brandName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFF5EB',
+    color: '#EDE8E4',
     letterSpacing: -0.3,
   },
   textContainer: {
@@ -208,7 +209,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    backgroundColor: 'rgba(255,122,46,0.15)',
+    backgroundColor: withPrimaryOpacity(0.15),
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
@@ -219,7 +220,7 @@ const styles = StyleSheet.create({
   categoryName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FF7A2E',
+    color: PRIMARY,
   },
   statsRow: {
     flexDirection: 'row',
@@ -232,7 +233,7 @@ const styles = StyleSheet.create({
   },
   statText: {
     fontSize: 11,
-    color: '#B8956A',
+    color: '#A89C90',
   },
   watermarkRow: {
     flexDirection: 'row',

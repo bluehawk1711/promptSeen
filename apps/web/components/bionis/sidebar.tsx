@@ -2,7 +2,7 @@
 
 import {
   LayoutDashboard, FileText, Tags, MessageSquare, Users,
-  BarChart3, Bell, Settings, LogOut, ChevronLeft, HelpCircle,
+  BarChart3, Bell, Settings, LogOut, ChevronLeft, HelpCircle, Smartphone,
 } from 'lucide-react'
 import { PSLogo } from './logo'
 import { useDashboardNavigation, DashboardLink } from './navigation'
@@ -39,6 +39,7 @@ const navigationGroups: NavGroup[] = [
     { name: 'Users', href: '/admin/users', icon: Users },
   ]},
   { label: 'System', items: [
+    { name: 'App Settings', href: '/admin/app-settings', icon: Smartphone },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ]},
 ]

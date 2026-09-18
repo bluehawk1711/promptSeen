@@ -17,6 +17,98 @@ export interface FirebaseConfig {
 
 export type EnvPrefix = 'EXPO_PUBLIC_' | 'NEXT_PUBLIC_';
 
+// ─── App Config (global branding) ─────────────────────────────────────
+
+/**
+ * Global app identity — change the name in ONE place and it updates
+ * across the admin panel and the mobile app.
+ */
+export const APP_NAME = 'Prompt Seen';
+export const APP_TAGLINE = 'Your AI-Powered Creative Companion';
+
+// ─── App Settings (remote config) ───────────────────────────────────
+
+/** A social media link shown in the app's profile screen. */
+export interface SocialLink {
+  id: string;
+  /** Platform key: 'telegram' | 'instagram' | 'whatsapp' | 'x' | 'youtube' | 'facebook' | 'tiktok' | 'website'. */
+  platform: string;
+  /** Display label (e.g., "Telegram"). */
+  label: string;
+  /** Subtitle shown under the label (e.g., "Join our Telegram channel"). */
+  subtitle: string;
+  url: string;
+  /** Display order. */
+  order: number;
+  isActive: boolean;
+}
+
+/**
+ * Remote app settings document (`settings/app`).
+ *
+ * Admin-editable — controls versioning, force update, socials, and about text.
+ */
+export interface AppSettings {
+  /** Current advertised app version (e.g., "1.0.19"). */
+  latestVersion: string;
+  /** Minimum version required. Apps below this show a blocking update screen. */
+  minVersion: string;
+  /** Play Store URL users are sent to for updates. */
+  playStoreUrl: string;
+  /** App Store URL (optional). */
+  appStoreUrl: string;
+  /** Force-update behavior. */
+  updateMode: 'none' | 'soft' | 'hard';
+  /** About text shown on the profile screen. */
+  aboutText: string;
+  /** Support email. */
+  supportEmail: string;
+  /** Social links shown in the app. */
+  socialLinks: SocialLink[];
+  updatedAt: number | null;
+}
+
+/** Default settings used when the document doesn't exist yet. */
+export const DEFAULT_APP_SETTINGS: Omit<AppSettings, 'updatedAt'> = {
+  latestVersion: '1.0.0',
+  minVersion: '1.0.0',
+  playStoreUrl: '',
+  appStoreUrl: '',
+  updateMode: 'none',
+  aboutText:
+    'Prompt Seen is your intelligent AI companion designed to help you explore, create, and innovate. Powered by cutting-edge AI technology.',
+  supportEmail: '',
+  socialLinks: [
+    {
+      id: 'social-telegram',
+      platform: 'telegram',
+      label: 'Telegram',
+      subtitle: 'Join our Telegram channel',
+      url: 'https://t.me/promptseen',
+      order: 0,
+      isActive: true,
+    },
+    {
+      id: 'social-instagram',
+      platform: 'instagram',
+      label: 'Instagram',
+      subtitle: 'Follow us on Instagram',
+      url: 'https://instagram.com/promptseen',
+      order: 1,
+      isActive: true,
+    },
+    {
+      id: 'social-whatsapp',
+      platform: 'whatsapp',
+      label: 'WhatsApp',
+      subtitle: 'Join our WhatsApp channel',
+      url: 'https://whatsapp.com/channel/promptseen',
+      order: 2,
+      isActive: true,
+    },
+  ],
+};
+
 // ─── Prompt ─────────────────────────────────────────────────────────────────
 
 export interface Prompt {
