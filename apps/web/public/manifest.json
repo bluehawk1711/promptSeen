@@ -4,8 +4,8 @@
   "description": "Admin panel for managing Prompt View prompts and categories",
   "start_url": "/admin",
   "display": "standalone",
-  "background_color": "#0D0500",
-  "theme_color": "#FF7A2E",
+  "background_color": "#0A0A1A",
+  "theme_color": "#5B5BFF",
   "orientation": "portrait-primary",
   "icons": [
     {

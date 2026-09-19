@@ -94,14 +94,14 @@ export async function registerForPushNotifications(
         name: 'Default',
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#EE6123',
+        lightColor: '#5B5BFF',
       });
 
       await Notifications.setNotificationChannelAsync('prompts', {
         name: 'New Prompts',
         importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250],
-        lightColor: '#EE6123',
+        lightColor: '#5B5BFF',
         description: 'Notifications about new prompts and daily picks',
       });
     }

@@ -59,7 +59,7 @@ export default function CategoriesPage() {
   }
 
   const handleSave = async () => {
-    const data = { name: formName, slug: formSlug, icon: '📁', color: '#F26522', order: editingCategory?.order ?? categories.length, isActive: formIsActive }
+    const data = { name: formName, slug: formSlug, icon: '📁', color: '#5B5BFF', order: editingCategory?.order ?? categories.length, isActive: formIsActive }
     if (editingCategory) {
       await updateCategory.mutateAsync({ id: editingCategory.id, data })
       toast.success('Category updated', 'The category has been saved.')

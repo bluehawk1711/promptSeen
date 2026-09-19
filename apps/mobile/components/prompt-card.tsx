@@ -195,6 +195,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   wrapperCompact: {
+    flex: 0,
     width: '46%',
     marginBottom: 10,
   },

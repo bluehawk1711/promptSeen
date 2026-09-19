@@ -8,6 +8,7 @@ import {
   Dimensions,
   ActivityIndicator,
   Share,
+  Linking,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, router } from 'expo-router';
@@ -22,6 +23,8 @@ import {
   Copy,
   Play,
   Heart,
+  ExternalLink,
+  Sparkles,
 } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -488,6 +491,35 @@ export default function PromptDetailScreen() {
           </Animated.View>
         )}
 
+        {/* ── Generate with AI ──────────────────────────────────────── */}
+        <View style={styles.aiSection}>
+          <TouchableOpacity
+            style={[styles.aiButton, { backgroundColor: '#10A37F', borderColor: '#10A37F' }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              Linking.openURL(`https://chatgpt.com/?q=${encodeURIComponent(prompt.text)}`);
+            }}
+            activeOpacity={0.85}
+          >
+            <Sparkles size={16} color="#fff" />
+            <Text style={styles.aiButtonText}>Generate with ChatGPT</Text>
+            <ExternalLink size={13} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.aiButton, { backgroundColor: '#1A73E8', borderColor: '#1A73E8' }]}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              Linking.openURL(`https://gemini.google.com/app?prompt=${encodeURIComponent(prompt.text)}`);
+            }}
+            activeOpacity={0.85}
+          >
+            <Sparkles size={16} color="#fff" />
+            <Text style={styles.aiButtonText}>Generate with Gemini</Text>
+            <ExternalLink size={13} color="rgba(255,255,255,0.7)" />
+          </TouchableOpacity>
+        </View>
+
         {/* ── Related Prompts ────────────────────────────────────────── */}
         {morePrompts.length > 0 && (
           <Animated.View
@@ -736,7 +768,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.06)',
     backgroundColor: 'rgba(30,24,18,0.65)',
     padding: 16,
-    shadowColor: '#F26522',
+    shadowColor: '#5B5BFF',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 16,
@@ -820,6 +852,32 @@ const styles = StyleSheet.create({
   },
   actionButtonText: { color: '#fff', fontSize: 16, fontWeight: '800', letterSpacing: 0.2 },
 
+  // ── AI Generate Buttons ──────────────────────────────────────────
+  aiSection: {
+    marginHorizontal: 14,
+    marginBottom: 14,
+    gap: 10,
+  },
+  aiButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  aiButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.1,
+  },
+
   // ── Related Prompts ────────────────────────────────────────────────
   moreSection: { marginTop: 4 },
   moreHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, marginBottom: 12 },
@@ -828,7 +886,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 10,
-    gap: 0,
+    columnGap: 10,
+    rowGap: 10,
   },
   loadingMore: {
     flexDirection: 'row',

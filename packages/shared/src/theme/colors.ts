@@ -1,75 +1,75 @@
 /**
- * TS Prompt — Global color theme.
+ * Prompt View — Global color theme.
  *
- * Warm orange/dark palette inspired by the onboarding design.
- * Both light and dark modes use orange as the primary accent.
+ * Blue-purple palette matching the new logo.
+ * Both light and dark modes use blue as the primary accent.
  *
  * PRIMARY is the single source of truth for the brand accent. Use it for
  * static styles (SplashScreen, ShareCard) that render before/without a
  * theme context; everywhere else prefer `colors.primary`.
  */
-export const PRIMARY = '#EE6123';
+export const PRIMARY = '#5B5BFF';
 
 /** Primary with alpha — for glows, tints, and borders. */
 export const withPrimaryOpacity = (opacity: number): string =>
-  `rgba(238, 97, 35, ${opacity})`;
+  `rgba(91, 91, 255, ${opacity})`;
 
 const lightColors = {
-  // Base colors — matching admin panel light mode
+  // Base colors
   background: '#FFFFFF',
-  foreground: '#2B2B2B',
+  foreground: '#1A1A2E',
 
   // Card colors
   card: '#FFFFFF',
-  cardForeground: '#2B2B2B',
+  cardForeground: '#1A1A2E',
 
   // Popover colors
   popover: '#FFFFFF',
-  popoverForeground: '#2B2B2B',
+  popoverForeground: '#1A1A2E',
 
-  // Primary — warm orange (admin panel primary)
+  // Primary — blue
   primary: PRIMARY,
   primaryForeground: '#FFFFFF',
 
   // Secondary
-  secondary: '#F7F5F3',
-  secondaryForeground: '#7A4A2B',
+  secondary: '#F0F0FF',
+  secondaryForeground: '#3D3D8A',
 
   // Muted colors
-  muted: '#F4F2F0',
-  mutedForeground: '#8F8A84',
+  muted: '#F4F4FC',
+  mutedForeground: '#7A7A9E',
 
   // Accent colors
-  accent: '#FDF0E7',
-  accentForeground: '#B44A1E',
+  accent: '#EDEDFE',
+  accentForeground: '#4040B0',
 
   // Destructive colors
   destructive: '#DC3545',
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#E8E4E0',
-  input: '#E8E4E0',
-  ring: '#EE6123',
+  border: '#E0E0F0',
+  input: '#E0E0F0',
+  ring: '#5B5BFF',
 
   // Text colors
-  text: '#2B2B2B',
-  textMuted: '#8F8A84',
+  text: '#1A1A2E',
+  textMuted: '#7A7A9E',
 
   // Legacy support
-  tint: '#F26522',
-  icon: '#8B7355',
-  tabIconDefault: '#8B7355',
-  tabIconSelected: '#F26522',
+  tint: '#5B5BFF',
+  icon: '#6B6BAA',
+  tabIconDefault: '#7A7A9E',
+  tabIconSelected: '#5B5BFF',
 
   // Semantic accent colors
-  blue: '#2196F3',
+  blue: '#5B5BFF',
   green: '#34C759',
   red: '#FF3B30',
-  orange: '#F26522',
+  orange: '#FF9500',
   yellow: '#FFD60A',
   pink: '#FF6B9D',
-  purple: '#AF52DE',
+  purple: '#8B5CF6',
   teal: '#5AC8FA',
   indigo: '#5856D6',
 
@@ -83,65 +83,65 @@ const lightColors = {
   error: '#ef4444',
   errorForeground: '#ffffff',
 
-  // Brand gradients (for reference)
-  gradientStart: '#F26522',
-  gradientEnd: '#E85D1A',
-  gradientBg: '#1A0A00',
+  // Brand gradients
+  gradientStart: '#5B5BFF',
+  gradientEnd: '#7C3AED',
+  gradientBg: '#0A0A1A',
 };
 
 const darkColors = {
-  // Base colors — deep warm dark matching the admin panel
-  background: '#141210',
-  foreground: '#EDE8E4',
+  // Base colors — cool dark matching the blue-purple logo
+  background: '#0A0A1A',
+  foreground: '#E8E8F0',
 
   // Card colors
-  card: '#211E1B',
-  cardForeground: '#EDE8E4',
+  card: '#14142B',
+  cardForeground: '#E8E8F0',
 
   // Popover colors
-  popover: '#211E1B',
-  popoverForeground: '#EDE8E4',
+  popover: '#14142B',
+  popoverForeground: '#E8E8F0',
 
-  // Primary — warm orange (admin panel primary oklch(0.6988 0.1843 49.1654) ≈ #E85D2A)
+  // Primary — blue
   primary: PRIMARY,
   primaryForeground: '#FFFFFF',
 
   // Secondary
-  secondary: '#2B2723',
-  secondaryForeground: '#F5C9A8',
+  secondary: '#1C1C35',
+  secondaryForeground: '#C0C0E0',
 
   // Muted colors
-  muted: '#2B2723',
-  mutedForeground: '#A89C90',
+  muted: '#1C1C35',
+  mutedForeground: '#8888B0',
 
   // Accent colors
-  accent: '#3A2418',
-  accentForeground: '#F5C9A8',
+  accent: '#1E1E40',
+  accentForeground: '#C0C0E0',
 
   // Destructive colors
   destructive: '#FF453A',
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#37322D',
-  input: '#37322D',
-  ring: '#EE6123',
+  border: '#2A2A4A',
+  input: '#2A2A4A',
+  ring: '#5B5BFF',
 
   // Text colors
-  text: '#EDE8E4',
-  textMuted: '#A89C90',
+  text: '#E8E8F0',
+  textMuted: '#8888B0',
 
   // Legacy support
-  tint: '#FF7A2E',
-  icon: '#B8956A',
-  tabIconDefault: '#B8956A',
-  tabIconSelected: '#FF7A2E',
+  tint: '#7C8CFF',
+  icon: '#8888B0',
+  tabIconDefault: '#6B6BAA',
+  tabIconSelected: '#7C8CFF',
 
   // Semantic accent colors
-  blue: '#4DABF7',
+  blue: '#7C8CFF',
   green: '#51CF66',
   red: '#FF6B6B',
-  orange: '#EE6123',
+  orange: '#FFA94D',
   yellow: '#FFD43B',
   pink: '#FF6B9D',
   purple: '#CC5DE8',
@@ -158,10 +158,10 @@ const darkColors = {
   error: '#dc2626',
   errorForeground: '#ffffff',
 
-  // Brand gradients (for reference)
-  gradientStart: '#EE6123',
-  gradientEnd: '#D14E15',
-  gradientBg: '#141210',
+  // Brand gradients
+  gradientStart: '#5B5BFF',
+  gradientEnd: '#7C3AED',
+  gradientBg: '#0A0A1A',
 };
 
 export const Colors = {

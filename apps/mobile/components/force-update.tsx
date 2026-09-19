@@ -82,10 +82,10 @@ export function ForceUpdateGate({ children }: { children: React.ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#141210' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0A0A1A' },
   container: {
     flex: 1,
-    backgroundColor: '#141210',
+    backgroundColor: '#0A0A1A',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 380,
     alignItems: 'center',
-    backgroundColor: '#211E1B',
+    backgroundColor: '#14142B',
     borderRadius: 24,
     borderWidth: 1,
     borderColor: withPrimaryOpacity(0.25),
