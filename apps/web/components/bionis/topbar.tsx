@@ -131,11 +131,7 @@ export function AdminTopbar() {
             <Moon className={cn('size-[18px] transition-all duration-300', isDark ? '-rotate-90 scale-0 absolute' : 'rotate-0 scale-100')} />
           </Button>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative size-9 rounded-xl" aria-label="Notifications">
-            <Bell className="size-[18px] text-muted-foreground" />
-            <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary animate-pulse" />
-          </Button>
+
         </div>
       </header>
 

@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
     height: 500,
     borderRadius: 24,
     overflow: 'hidden',
-    backgroundColor: '#0A0A1A',
+    backgroundColor: '#0D0A14',
   },
   backgroundImage: {
     ...StyleSheet.absoluteFill,
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: '#0A0A1A',
+    backgroundColor: '#0D0A14',
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',

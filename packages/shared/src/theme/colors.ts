@@ -1,167 +1,167 @@
 /**
  * Prompt View — Global color theme.
  *
- * Blue-purple palette matching the new logo.
- * Both light and dark modes use blue as the primary accent.
+ * Purple-dominant palette matching the logo.
+ * Both light and dark modes use purple as the primary accent.
  *
  * PRIMARY is the single source of truth for the brand accent. Use it for
  * static styles (SplashScreen, ShareCard) that render before/without a
  * theme context; everywhere else prefer `colors.primary`.
  */
-export const PRIMARY = '#5B5BFF';
+export const PRIMARY = '#7C3AED';
 
 /** Primary with alpha — for glows, tints, and borders. */
 export const withPrimaryOpacity = (opacity: number): string =>
-  `rgba(91, 91, 255, ${opacity})`;
+  `rgba(124, 58, 237, ${opacity})`;
 
 const lightColors = {
   // Base colors
   background: '#FFFFFF',
-  foreground: '#1A1A2E',
+  foreground: '#1A102E',
 
   // Card colors
   card: '#FFFFFF',
-  cardForeground: '#1A1A2E',
+  cardForeground: '#1A102E',
 
   // Popover colors
   popover: '#FFFFFF',
-  popoverForeground: '#1A1A2E',
+  popoverForeground: '#1A102E',
 
-  // Primary — blue
+  // Primary — purple
   primary: PRIMARY,
   primaryForeground: '#FFFFFF',
 
   // Secondary
-  secondary: '#F0F0FF',
-  secondaryForeground: '#3D3D8A',
+  secondary: '#F3EEFF',
+  secondaryForeground: '#5B3D99',
 
   // Muted colors
-  muted: '#F4F4FC',
-  mutedForeground: '#7A7A9E',
+  muted: '#F5F0FF',
+  mutedForeground: '#8B7AAE',
 
   // Accent colors
-  accent: '#EDEDFE',
-  accentForeground: '#4040B0',
+  accent: '#EDE5FE',
+  accentForeground: '#5B3D99',
 
   // Destructive colors
   destructive: '#DC3545',
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#E0E0F0',
-  input: '#E0E0F0',
-  ring: '#5B5BFF',
+  border: '#E0D5F5',
+  input: '#E0D5F5',
+  ring: '#7C3AED',
 
   // Text colors
-  text: '#1A1A2E',
-  textMuted: '#7A7A9E',
+  text: '#1A102E',
+  textMuted: '#8B7AAE',
 
   // Legacy support
-  tint: '#5B5BFF',
-  icon: '#6B6BAA',
-  tabIconDefault: '#7A7A9E',
-  tabIconSelected: '#5B5BFF',
+  tint: '#7C3AED',
+  icon: '#7B6AA0',
+  tabIconDefault: '#8B7AAE',
+  tabIconSelected: '#7C3AED',
 
   // Semantic accent colors
-  blue: '#5B5BFF',
+  blue: '#6366F1',
   green: '#34C759',
   red: '#FF3B30',
   orange: '#FF9500',
   yellow: '#FFD60A',
   pink: '#FF6B9D',
-  purple: '#8B5CF6',
+  purple: '#A855F7',
   teal: '#5AC8FA',
-  indigo: '#5856D6',
+  indigo: '#6366F1',
 
   // Semantic states
   success: '#22c55e',
   successForeground: '#ffffff',
   warning: '#f59e0b',
   warningForeground: '#ffffff',
-  info: '#3b82f6',
+  info: '#6366F1',
   infoForeground: '#ffffff',
   error: '#ef4444',
   errorForeground: '#ffffff',
 
   // Brand gradients
-  gradientStart: '#5B5BFF',
-  gradientEnd: '#7C3AED',
-  gradientBg: '#0A0A1A',
+  gradientStart: '#7C3AED',
+  gradientEnd: '#A855F7',
+  gradientBg: '#0D0A14',
 };
 
 const darkColors = {
-  // Base colors — cool dark matching the blue-purple logo
-  background: '#0A0A1A',
-  foreground: '#E8E8F0',
+  // Base colors — deep purple-dark matching the logo
+  background: '#0D0A14',
+  foreground: '#E8E0F4',
 
   // Card colors
-  card: '#14142B',
-  cardForeground: '#E8E8F0',
+  card: '#1A1030',
+  cardForeground: '#E8E0F4',
 
   // Popover colors
-  popover: '#14142B',
-  popoverForeground: '#E8E8F0',
+  popover: '#1A1030',
+  popoverForeground: '#E8E0F4',
 
-  // Primary — blue
+  // Primary — purple
   primary: PRIMARY,
   primaryForeground: '#FFFFFF',
 
   // Secondary
-  secondary: '#1C1C35',
-  secondaryForeground: '#C0C0E0',
+  secondary: '#1F1535',
+  secondaryForeground: '#C4B5E0',
 
   // Muted colors
-  muted: '#1C1C35',
-  mutedForeground: '#8888B0',
+  muted: '#1F1535',
+  mutedForeground: '#9080B8',
 
   // Accent colors
-  accent: '#1E1E40',
-  accentForeground: '#C0C0E0',
+  accent: '#2D1B50',
+  accentForeground: '#C4B5E0',
 
   // Destructive colors
   destructive: '#FF453A',
   destructiveForeground: '#FFFFFF',
 
   // Border and input
-  border: '#2A2A4A',
-  input: '#2A2A4A',
-  ring: '#5B5BFF',
+  border: '#2E2048',
+  input: '#2E2048',
+  ring: '#7C3AED',
 
   // Text colors
-  text: '#E8E8F0',
-  textMuted: '#8888B0',
+  text: '#E8E0F4',
+  textMuted: '#9080B8',
 
   // Legacy support
-  tint: '#7C8CFF',
-  icon: '#8888B0',
-  tabIconDefault: '#6B6BAA',
-  tabIconSelected: '#7C8CFF',
+  tint: '#A78BFA',
+  icon: '#9080B8',
+  tabIconDefault: '#7B6AA0',
+  tabIconSelected: '#A78BFA',
 
   // Semantic accent colors
-  blue: '#7C8CFF',
+  blue: '#818CF8',
   green: '#51CF66',
   red: '#FF6B6B',
   orange: '#FFA94D',
   yellow: '#FFD43B',
   pink: '#FF6B9D',
-  purple: '#CC5DE8',
+  purple: '#C084FC',
   teal: '#3BC9DB',
-  indigo: '#748FFC',
+  indigo: '#818CF8',
 
   // Semantic states
   success: '#16a34a',
   successForeground: '#ffffff',
   warning: '#d97706',
   warningForeground: '#ffffff',
-  info: '#2563eb',
+  info: '#818CF8',
   infoForeground: '#ffffff',
   error: '#dc2626',
   errorForeground: '#ffffff',
 
   // Brand gradients
-  gradientStart: '#5B5BFF',
-  gradientEnd: '#7C3AED',
-  gradientBg: '#0A0A1A',
+  gradientStart: '#7C3AED',
+  gradientEnd: '#A855F7',
+  gradientBg: '#0D0A14',
 };
 
 export const Colors = {
