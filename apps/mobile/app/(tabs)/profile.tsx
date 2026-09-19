@@ -21,6 +21,7 @@ import {
   ThumbsUp as FacebookIcon,
   Music2,
   ShieldCheck,
+  MessageSquarePlus,
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 
@@ -274,6 +275,29 @@ export default function ProfileScreen() {
         {/* ── Support & Feedback ───────────────────────────────────────── */}
         <Text style={[styles.sectionTitle, { color: PRIMARY }]}>Support & Feedback</Text>
         <View style={styles.rowCardStack}>
+          {/* Send Feedback — opens feedback form */}
+          <Animated.View>
+            <TouchableOpacity
+              style={[styles.rowCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                router.push('/feedback' as any);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.rowIconWrap, { backgroundColor: 'rgba(124,58,237,0.14)' }]}>
+                <MessageSquarePlus size={18} color={PRIMARY} strokeWidth={2.2} />
+              </View>
+              <View style={styles.rowTextWrap}>
+                <Text style={[styles.rowTitle, { color: colors.text }]}>Send Feedback</Text>
+                <Text style={[styles.rowSubtitle, { color: colors.mutedForeground }]}>
+                  Report bugs, suggest features
+                </Text>
+              </View>
+              <ChevronRight size={16} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </Animated.View>
+
           <Animated.View>
             <TouchableOpacity
               style={[styles.rowCard, { backgroundColor: colors.card, borderColor: colors.border }]}

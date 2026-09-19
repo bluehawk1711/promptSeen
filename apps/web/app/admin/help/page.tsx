@@ -29,7 +29,7 @@ export default function HelpPage() {
         <CardContent>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Welcome to the Prompt View Admin Panel! This is your central hub for managing all
-            AI prompts, categories, user submissions, notifications, and app analytics.
+            AI prompts, categories, user feedback, notifications, and app analytics.
             Use the sidebar to navigate between sections, and the search bar (⌘K) to quickly
             jump to any page.
           </p>
@@ -54,7 +54,7 @@ export default function HelpPage() {
               <ul className="list-disc list-inside space-y-1.5">
                 <li><strong>Greeting card</strong> — Shows "Good Morning/Afternoon/Evening" with the current date</li>
                 <li><strong>App Overview</strong> — A quick summary of active prompts, categories, and total engagements with a donut chart</li>
-                <li><strong>Key Metrics</strong> — Total Prompts, Categories, Users, and Submissions with trend indicators</li>
+                <li><strong>Key Metrics</strong> — Total Prompts, Categories, Users, and Feedback with trend indicators</li>
                 <li><strong>Engagement Stats</strong> — Total Likes, Copies, and Shares across all prompts</li>
                 <li><strong>Engagement Trend</strong> — A 14-day area chart showing likes, copies, and shares over time</li>
                 <li><strong>Prompts by Category</strong> — Pie chart showing distribution of prompts across categories</li>
@@ -119,26 +119,26 @@ export default function HelpPage() {
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="submissions">
+        <AccordionItem value="feedback">
           <AccordionTrigger>
             <div className="flex items-center gap-2.5">
               <MessageSquare className="size-4 text-primary" />
-              Submissions
+              Feedback
             </div>
           </AccordionTrigger>
           <AccordionContent>
             <div className="space-y-3">
               <p>
-                <strong>Submissions</strong> are prompts submitted by mobile app users for your review.
+                <strong>Feedback</strong> is user-submitted messages from the mobile app (bug reports, feature requests, improvements).
               </p>
               <ul className="list-disc list-inside space-y-1.5">
-                <li><strong>Pending</strong> — New submissions waiting for your review (shown by default)</li>
-                <li><strong>Approve</strong> — Click "Review" → assign a category → click "Approve & Publish". This creates a new prompt automatically.</li>
-                <li><strong>Reject</strong> — Click "Review" → optionally add a note → click "Reject".</li>
-                <li><strong>Filter tabs</strong> — Switch between Pending, All, Approved, and Rejected views.</li>
+                <li><strong>New</strong> — Unread feedback entries (shown by default)</li>
+                <li><strong>Mark as Read</strong> — Click the eye icon to mark feedback as read</li>
+                <li><strong>Archive</strong> — Move feedback to the archived list when done</li>
+                <li><strong>Filter tabs</strong> — Switch between New, All, Read, and Archived views.</li>
               </ul>
               <p className="text-xs text-muted-foreground italic">
-                Tip: Approving a submission automatically creates a new prompt in the database. You can edit it afterwards from the Prompts page.
+                Tip: Users can submit feedback from the Profile screen in the mobile app.
               </p>
             </div>
           </AccordionContent>

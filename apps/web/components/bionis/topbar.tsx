@@ -14,10 +14,9 @@ const navItems = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Prompts', href: '/admin/prompts', icon: FileText },
   { name: 'Categories', href: '/admin/categories', icon: Tags },
-  { name: 'Submissions', href: '/admin/submissions', icon: MessageSquare },
+  { name: 'Feedback', href: '/admin/feedback', icon: MessageSquare },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Notifications', href: '/admin/notifications', icon: Bell },
-  { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'App Settings', href: '/admin/app-settings', icon: Smartphone },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]

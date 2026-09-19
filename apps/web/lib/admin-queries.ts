@@ -26,7 +26,7 @@ import {
 } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
 import { cacheKeys } from '@/lib/cache-keys';
-import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus, DailyStats } from '@repo/shared/types';
+import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus, DailyStats, Feedback, FeedbackStatus } from '@repo/shared/types';
 
 // ─── Server-side cache invalidation via API route ───────────────────────────
 // We call the server-side API instead of importing redis.ts directly,
@@ -52,6 +52,7 @@ export const adminQueryKeys = {
   categories: ['admin', 'categories'] as const,
   users: ['admin', 'users'] as const,
   submissions: ['admin', 'submissions'] as const,
+  feedback: ['admin', 'feedback'] as const,
   stats: ['admin', 'stats'] as const,
   notifications: ['admin', 'notifications'] as const,
 } as const;
@@ -309,6 +310,45 @@ export function useApproveSubmission() {
   });
 }
 
+// ─── Feedback Hooks ────────────────────────────────────────────────────────
+
+export function useAdminFeedback() {
+  return useQuery({
+    queryKey: adminQueryKeys.feedback,
+    queryFn: async () => {
+      const snap = await getDocs(
+        query(collection(getDb(), 'feedback'), orderBy('createdAt', 'desc'))
+      );
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() } as Feedback));
+    },
+    staleTime: 2.5 * 60 * 1000,
+  });
+}
+
+export function useUpdateFeedbackStatus() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      status,
+      adminNote,
+    }: {
+      id: string;
+      status: FeedbackStatus;
+      adminNote?: string;
+    }) => {
+      await updateDoc(doc(getDb(), 'feedback', id), {
+        status,
+        ...(adminNote !== undefined && { adminNote }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: adminQueryKeys.feedback });
+    },
+  });
+}
+
 // ─── Notification Hooks ─────────────────────────────────────────────────────
 
 export function useAdminNotifications() {
@@ -366,12 +406,13 @@ export function useAdminStats() {
   return useQuery({
     queryKey: adminQueryKeys.stats,
     queryFn: async () => {
-      const [promptsSnap, categoriesSnap, usersSnap, submissionsSnap] =
+      const [promptsSnap, categoriesSnap, usersSnap, submissionsSnap, feedbackSnap] =
         await Promise.all([
           getDocs(collection(getDb(), 'prompts')),
           getDocs(collection(getDb(), 'categories')),
           getDocs(collection(getDb(), 'users')),
           getDocs(collection(getDb(), 'submissions')),
+          getDocs(collection(getDb(), 'feedback')),
         ]);
 
       const prompts = promptsSnap.docs.map(
@@ -379,6 +420,9 @@ export function useAdminStats() {
       );
       const submissions = submissionsSnap.docs.map(
         (d) => ({ id: d.id, ...d.data() } as PromptSubmission)
+      );
+      const feedbackEntries = feedbackSnap.docs.map(
+        (d) => ({ id: d.id, ...d.data() } as Feedback)
       );
 
       return {
@@ -392,6 +436,8 @@ export function useAdminStats() {
         totalShares: prompts.reduce((sum, p) => sum + (p.shareCount ?? 0), 0),
         pendingSubmissions: submissions.filter((s) => s.status === 'pending').length,
         totalSubmissions: submissions.length,
+        totalFeedback: feedbackEntries.length,
+        newFeedback: feedbackEntries.filter((f) => f.status === 'new').length,
       };
     },
     staleTime: 2.5 * 60 * 1000,

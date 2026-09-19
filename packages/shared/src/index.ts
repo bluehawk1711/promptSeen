@@ -24,9 +24,12 @@ export type {
    // Collections
    Collection,
    CollectionCreateInput,
-   // Submissions
-   PromptSubmission,
-   SubmissionStatus,
+    // Submissions
+    PromptSubmission,
+    SubmissionStatus,
+    // Feedback
+    Feedback,
+    FeedbackStatus,
    // Analytics
    AnalyticsEvent,
    AnalyticsEventType,

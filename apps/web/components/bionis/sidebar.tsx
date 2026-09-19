@@ -34,9 +34,8 @@ const navigationGroups: NavGroup[] = [
     { name: 'Categories', href: '/admin/categories', icon: Tags },
   ]},
   { label: 'Engagement', items: [
-    { name: 'Submissions', href: '/admin/submissions', icon: MessageSquare },
+    { name: 'Feedback', href: '/admin/feedback', icon: MessageSquare },
     { name: 'Notifications', href: '/admin/notifications', icon: Bell },
-    { name: 'Users', href: '/admin/users', icon: Users },
   ]},
   { label: 'System', items: [
     { name: 'App Settings', href: '/admin/app-settings', icon: Smartphone },

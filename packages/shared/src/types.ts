@@ -326,6 +326,31 @@ export interface PromptSubmission {
   createdAt: number | null;
 }
 
+// ─── User Feedback ────────────────────────────────────────────────────────
+
+export type FeedbackStatus = 'new' | 'read' | 'archived';
+
+export interface Feedback {
+  id: string;
+  /** UID of the user who sent this feedback. */
+  userId: string;
+  /** Display name of the user. */
+  userName: string;
+  /** User email (optional). */
+  userEmail: string;
+  /** Feedback category. */
+  category: 'bug' | 'feature' | 'improvement' | 'other';
+  /** The feedback message. */
+  message: string;
+  /** Star rating 1–5 (optional). */
+  rating: number | null;
+  /** Admin status. */
+  status: FeedbackStatus;
+  /** Admin notes. */
+  adminNote: string;
+  createdAt: number;
+}
+
 // ─── Analytics ──────────────────────────────────────────────────────────────
 
 export type AnalyticsEventType =

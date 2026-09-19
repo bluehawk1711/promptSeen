@@ -7,7 +7,7 @@ import {
   AreaChart, Area,
   CartesianGrid, XAxis, YAxis, Tooltip,
 } from 'recharts'
-import { FileText, Tags, Users, Heart, Copy, Share2, Send, Eye, TrendingUp, Calendar, ArrowUpRight } from 'lucide-react'
+import { FileText, Tags, Users, Heart, Copy, Share2, Send, Eye, TrendingUp, Calendar, ArrowUpRight, MessageSquare } from 'lucide-react'
 import { useAdminStats, useNotificationStats } from '@/lib/admin-queries'
 import { GradientHeader } from '@/components/ui/gradient-header'
 import { Card, CardContent } from '@/components/ui/card'
@@ -202,8 +202,8 @@ export function DashboardContent() {
             icon={Tags} iconBg="bg-orange-500/10 text-orange-600" accent="oklch(0.6090 0.1848 41.0964)" />
           <StatCard index={2} title="Users" value={stats?.totalUsers ?? 0} subtitle="Registered users"
             icon={Users} iconBg="bg-blue-500/10 text-blue-600" accent="oklch(0.55 0.20 250)" trend="+5% this week" trendUp />
-          <StatCard index={3} title="Submissions" value={stats?.totalSubmissions ?? 0} subtitle={`${stats?.pendingSubmissions ?? 0} pending review`}
-            icon={Send} iconBg="bg-purple-500/10 text-purple-600" accent="oklch(0.55 0.20 300)" />
+          <StatCard index={3} title="Feedback" value={stats?.totalFeedback ?? 0} subtitle={`${stats?.newFeedback ?? 0} unread`}
+            icon={MessageSquare} iconBg="bg-purple-500/10 text-purple-600" accent="oklch(0.55 0.20 300)" />
         </StaggerContainer>
       </div>
 
