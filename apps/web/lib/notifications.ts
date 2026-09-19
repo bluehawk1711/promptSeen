@@ -1,22 +1,13 @@
 /**
  * Server-side notification utilities for the admin panel.
  *
- * Uses Expo Push Notification API to send notifications.
- * No Firebase Admin SDK needed — Expo handles FCM delivery.
+ * Uses Firebase Admin SDK (bypasses security rules) and
+ * Expo Push Notification API to send notifications.
  *
  * Docs: https://docs.expo.dev/push-notifications/sending-notifications/
  */
 
-import {
-  collection,
-  getDocs,
-  query,
-  where,
-  addDoc,
-  doc,
-  updateDoc,
-  type Firestore,
-} from 'firebase/firestore';
+import type { Firestore } from 'firebase-admin/firestore';
 import type { FCMToken, PushNotification } from '@repo/shared/types';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
@@ -29,11 +20,10 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 export async function getActiveTokens(
   db: Firestore
 ): Promise<FCMToken[]> {
-  const q = query(
-    collection(db, 'fcm_tokens'),
-    where('isActive', '==', true)
-  );
-  const snapshot = await getDocs(q);
+  const snapshot = await db
+    .collection('fcm_tokens')
+    .where('isActive', '==', true)
+    .get();
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() } as FCMToken));
 }
 
@@ -158,7 +148,7 @@ export async function sendPushNotification(
     }
   }
 
-  // Record the notification in Firestore
+  // Record the notification in Firestore (Admin SDK bypasses security rules)
   const notificationRecord: Omit<PushNotification, 'id'> = {
     title,
     body,
@@ -176,10 +166,9 @@ export async function sendPushNotification(
     createdAt: Date.now(),
   };
 
-  const docRef = await addDoc(
-    collection(db, 'push_notifications'),
-    notificationRecord
-  );
+  const docRef = await db
+    .collection('push_notifications')
+    .add(notificationRecord);
 
   return { id: docRef.id, ...notificationRecord };
 }

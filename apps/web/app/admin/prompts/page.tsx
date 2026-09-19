@@ -57,8 +57,6 @@ import {
 import { MultiSelect, MultiSelectTrigger, MultiSelectValue, MultiSelectContent, MultiSelectList, MultiSelectItem } from '@/components/motion/multi-select'
 import { ImageUpload, type ImageUploadHandle } from '@/components/image-upload'
 import { VideoUpload } from '@/components/video-upload'
-import { notifyNewPrompt } from '@/lib/notifications'
-import { getDb } from '@/lib/firebase'
 import {
   useAdminPrompts,
   useCreatePrompt,
@@ -90,6 +88,7 @@ export default function PromptsPage() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const [formText, setFormText] = useState('')
@@ -203,7 +202,19 @@ export default function PromptsPage() {
           const autoNotify = settings?.autoNotifyNewPrompt ?? true
           if (autoNotify) {
             const categoryName = getCategoryNames(formCategoryIds) || 'New'
-            await notifyNewPrompt(getDb(), newId, formText, categoryName, imageUrl, 'admin')
+            await fetch('/api/notifications/send', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                title: `New ${categoryName} Prompt`,
+                body: formText.length > 100 ? formText.slice(0, 97) + '...' : formText,
+                imageUrl,
+                target: 'all',
+                sentBy: 'admin',
+                source: 'auto',
+                promptId: newId,
+              }),
+            }).catch((err) => console.warn('Failed to send auto-notification:', err))
           }
         } catch (err) {
           console.warn('Failed to send auto-notification:', err)
@@ -244,8 +255,9 @@ export default function PromptsPage() {
 
   const filteredPrompts = prompts.filter(
     (p) =>
-      p.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.tags.some((tag) => tag.includes(searchQuery.toLowerCase()))
+      (p.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+       p.tags.some((tag) => tag.includes(searchQuery.toLowerCase()))) &&
+      (categoryFilter === 'all' || (p.categoryIds ?? []).includes(categoryFilter))
   )
 
   if (loading) {
@@ -277,16 +289,28 @@ export default function PromptsPage() {
         </Button>
       </FadeIn>
 
-      {/* Search */}
+      {/* Filters */}
       <FadeIn delay={0.05}>
-        <div className="relative max-w-sm">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search prompts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-11"
-          />
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative max-w-sm flex-1">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search prompts..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 h-11"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-11 rounded-lg border border-input bg-background px-3 text-sm cursor-pointer"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+            ))}
+          </select>
         </div>
       </FadeIn>
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/firebase";
+import { getAdminDb } from "@/lib/firebase-admin";
 import { sendPushNotification, notifyNewPrompt } from "@/lib/notifications";
 
 /**
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await sendPushNotification(getDb(), {
+    const result = await sendPushNotification(getAdminDb(), {
       title,
       body: notifBody,
       imageUrl: body.imageUrl,

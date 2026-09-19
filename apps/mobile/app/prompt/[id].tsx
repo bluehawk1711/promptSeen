@@ -121,15 +121,17 @@ export default function PromptDetailScreen() {
 
   // ── Handlers ──────────────────────────────────────────────────────
 
-  /** Copy after a completed video ad. Non-premium prompts also gate on ad. */
+  /** Copy prompt text to clipboard. Premium prompts require ad unlock first. */
   const handleCopy = async () => {
-    if (!prompt || isPremiumLocked || copied) return;
+    if (!prompt || copied) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setUnlocking(true);
     try {
-      // Play video ad first — copy only after it completes
-      const completed = await showRewardAd(prompt.id);
-      if (!completed) return;
+      // Premium prompts require watching an ad to unlock
+      if (prompt.isPremium && !isUnlocked(prompt.id)) {
+        const completed = await showRewardAd(prompt.id);
+        if (!completed) return;
+      }
 
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       await Clipboard.setStringAsync(prompt.text);
@@ -393,39 +395,9 @@ export default function PromptDetailScreen() {
                 </BlurView>
               </>
             ) : (
-              <>
-                <Text style={[styles.promptText, styles.blurredText, { color: colors.text }]} numberOfLines={6}>
-                  {prompt.text}
-                </Text>
-                <View
-                  style={[styles.frostVeil, { backgroundColor: isDark ? 'rgba(16,10,5,0.55)' : 'rgba(255,255,255,0.6)' }]}
-                  pointerEvents="none"
-                />
-                <BlurView
-                  intensity={isDark ? 55 : 45}
-                  tint={isDark ? 'dark' : 'light'}
-                  blurMethod="dimezisBlurView"
-                  blurTarget={blurTargetRef}
-                  style={styles.blurOverlay}
-                >
-                  <TouchableOpacity
-                    style={styles.blurTouchable}
-                    onPress={handleCopy}
-                    activeOpacity={0.85}
-                  >
-                    <View style={[styles.lockPill, styles.copyPill]}>
-                      {copied ? (
-                        <Check size={13} color="#51CF66" strokeWidth={3} />
-                      ) : (
-                        <Copy size={13} color="#51CF66" />
-                      )}
-                      <Text style={[styles.lockText, { color: '#51CF66' }]}>
-                        {copied ? 'Copied to clipboard' : 'Tap to reveal & copy'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                </BlurView>
-              </>
+              <Text style={[styles.promptText, { color: colors.text }]}>
+                {prompt.text}
+              </Text>
             )}
           </View>
         </Animated.View>
@@ -457,7 +429,7 @@ export default function PromptDetailScreen() {
               style={[styles.ctaWrap]}
             >
               {unlocking
-                ? 'Watch ad to copy...'
+                ? 'Copying...'
                 : copied
                   ? 'Copied!'
                   : 'Copy Prompt'}
