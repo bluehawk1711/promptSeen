@@ -9,6 +9,7 @@ import {
 } from 'recharts'
 import { FileText, Tags, Users, Heart, Copy, Share2, Send, Eye, TrendingUp, Calendar, ArrowUpRight } from 'lucide-react'
 import { useAdminStats, useNotificationStats } from '@/lib/admin-queries'
+import { GradientHeader } from '@/components/ui/gradient-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -162,12 +163,14 @@ export function DashboardContent() {
   return (
     <PageTransition className="flex flex-col gap-7">
       {/* Header */}
-      <FadeIn distance={10} className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">{greeting}, Admin</h1>
-        <Badge variant="outline" className="gap-1.5 text-xs font-normal px-3 py-1">
-          <Calendar className="size-3.5" />
-          {new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
-        </Badge>
+      <FadeIn distance={10}>
+        <GradientHeader variant="vivid" className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold tracking-tight">{greeting}, Admin</h1>
+          <Badge variant="outline" className="gap-1.5 text-xs font-normal px-3 py-1">
+            <Calendar className="size-3.5" />
+            {new Date().toLocaleDateString('en', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </Badge>
+        </GradientHeader>
       </FadeIn>
 
       {/* Hero Overview */}

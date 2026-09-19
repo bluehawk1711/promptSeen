@@ -122,6 +122,7 @@ export async function sendPushNotification(
   // Send in batches of 100
   let deliveredCount = 0;
   const BATCH_SIZE = 100;
+  const staleTokens: string[] = [];
 
   for (let i = 0; i < allMessages.length; i += BATCH_SIZE) {
     const batch = allMessages.slice(i, i + BATCH_SIZE);
@@ -137,14 +138,33 @@ export async function sendPushNotification(
 
       const result = await response.json();
 
-      // Count successful sends
       if (result.data) {
-        deliveredCount += result.data.filter(
-          (r: { status: string }) => r.status === 'ok'
-        ).length;
+        for (let j = 0; j < result.data.length; j++) {
+          const r = result.data[j];
+          if (r.status === 'ok') {
+            deliveredCount++;
+          } else {
+            console.error(`[notifications] Push failed: token=${batch[j]?.to}, status=${r.status}, message=${r.message}, details=${JSON.stringify(r.details)}`);
+            if (r.details?.error === 'DeviceNotRegistered') {
+              staleTokens.push(batch[j]?.to);
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('[notifications] Batch send failed:', error);
+    }
+  }
+
+  // Deactivate stale tokens so they don't inflate future sentCount
+  for (const staleToken of staleTokens) {
+    try {
+      const tokenSnap = await db.collection('fcm_tokens').where('token', '==', staleToken).get();
+      for (const doc of tokenSnap.docs) {
+        await doc.ref.update({ isActive: false });
+      }
+    } catch {
+      // Best-effort cleanup
     }
   }
 

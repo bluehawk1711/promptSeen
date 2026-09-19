@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Plus, Pencil, Trash2, Loader2, MoreHorizontal, FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { GradientButton } from '@/components/ui/gradient-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
@@ -95,9 +96,9 @@ export default function CategoriesPage() {
           <h1 className="text-xl font-medium md:text-2xl">Categories</h1>
           <p className="text-sm text-muted-foreground">{categories.length} categories total</p>
         </div>
-        <Button onClick={openCreate} className="shrink-0">
+        <GradientButton onClick={openCreate} className="shrink-0" direction="horizontal">
           <Plus size={16} className="mr-2" /> Add Category
-        </Button>
+        </GradientButton>
       </FadeIn>
 
       <FadeIn delay={0.1}>
@@ -179,10 +180,13 @@ export default function CategoriesPage() {
           </div>
           <SheetFooter>
             <Button variant="outline" onClick={() => setSheetOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={createCategory.isPending || updateCategory.isPending || !formName || !formSlug}>
-              {(createCategory.isPending || updateCategory.isPending) && <Loader2 className="mr-2 size-4 animate-spin" />}
+            <GradientButton
+              onClick={handleSave}
+              loading={createCategory.isPending || updateCategory.isPending}
+              disabled={createCategory.isPending || updateCategory.isPending || !formName || !formSlug}
+            >
               {editingCategory ? 'Save Changes' : 'Create Category'}
-            </Button>
+            </GradientButton>
           </SheetFooter>
         </SheetContent>
       </Sheet>

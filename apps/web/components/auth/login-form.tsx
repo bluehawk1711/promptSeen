@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { PSLogo } from '@/components/bionis/logo'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Loader2 } from 'lucide-react'
+import { GradientButton } from '@/components/ui/gradient-button'
+import { GradientCard } from '@/components/ui/gradient-card'
+import { GradientHeader } from '@/components/ui/gradient-header'
 import { useAuth } from '@/lib/auth'
 
 export function LoginForm() {
@@ -32,20 +33,18 @@ export function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/[0.03] px-4">
       <div className="w-full max-w-[400px]">
-        {/* Logo + Heading */}
-        <div className="flex flex-col items-center gap-4 mb-8">
+        <GradientHeader variant="subtle" className="mb-8 flex flex-col items-center gap-4 text-center">
           <div className="relative">
             <div className="absolute -inset-4 bg-primary/10 rounded-full blur-xl" />
             <PSLogo className="relative size-14" />
           </div>
-          <div className="text-center space-y-1">
+          <div className="space-y-1">
             <h1 className="text-2xl font-bold tracking-tight">Welcome back</h1>
             <p className="text-sm text-muted-foreground">Sign in to the Prompt View admin panel</p>
           </div>
-        </div>
+        </GradientHeader>
 
-        {/* Card */}
-        <div className="rounded-2xl border bg-card p-8 shadow-lg shadow-black/[0.03]">
+        <GradientCard variant="glow" padding="lg">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-semibold">Email address</Label>
@@ -73,12 +72,11 @@ export function LoginForm() {
               </div>
             )}
 
-            <Button type="submit" className="h-11 w-full text-sm font-semibold shadow-lg shadow-primary/20" disabled={loading}>
-              {loading ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+            <GradientButton type="submit" direction="horizontal" size="lg" loading={loading}>
               {loading ? 'Signing in...' : 'Sign in'}
-            </Button>
+            </GradientButton>
           </form>
-        </div>
+        </GradientCard>
 
         <p className="text-center text-xs text-muted-foreground/60 mt-8">
           Prompt View Admin Panel — Access restricted to authorized administrators

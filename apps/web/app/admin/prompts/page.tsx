@@ -18,6 +18,7 @@ import {
   Video,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { GradientButton } from '@/components/ui/gradient-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -283,10 +284,10 @@ export default function PromptsPage() {
             {prompts.length} prompts total, {prompts.filter((p) => p.isActive).length} active
           </p>
         </div>
-        <Button onClick={openCreate} className="shrink-0">
+        <GradientButton onClick={openCreate} className="shrink-0" direction="horizontal">
           <Plus size={16} className="mr-2" />
           Add Prompt
-        </Button>
+        </GradientButton>
       </FadeIn>
 
       {/* Filters */}
@@ -308,7 +309,7 @@ export default function PromptsPage() {
           >
             <option value="all">All Categories</option>
             {categories.map((cat) => (
-              <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
         </div>
@@ -494,13 +495,13 @@ export default function PromptsPage() {
 
           <SheetFooter>
             <Button variant="outline" onClick={() => setSheetOpen(false)} disabled={saving}>Cancel</Button>
-            <Button
+            <GradientButton
               onClick={handleSave}
+              loading={saving}
               disabled={saving || !formText.trim() || (!formImageUrl && !hasPendingImage)}
             >
-              {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
               {saving ? 'Saving...' : editingPrompt ? 'Save Changes' : 'Create Prompt'}
-            </Button>
+            </GradientButton>
           </SheetFooter>
         </SheetContent>
       </Sheet>

@@ -30,6 +30,8 @@ import { useThemeStore, type ThemeMode } from '@/store/theme';
 import { useFavoritesStore } from '@/store/favorites';
 import { useAppSettingsStore, APP_VERSION } from '@/store/app-settings';
 import { CountUp } from '@/components/animated';
+import { GradientCard } from '@/components/ui/gradient-card';
+import { GradientHeader } from '@/components/ui/gradient-header';
 
 const THEME_OPTIONS: { value: ThemeMode; label: string; subtitle: string; icon: typeof Sun }[] = [
   { value: 'light', label: 'Light', subtitle: 'Bright & clean look', icon: Sun },
@@ -129,15 +131,9 @@ export default function ProfileScreen() {
       >
         {/* ── Hero Card — glowing logo, app name, version badge ────────── */}
         <Animated.View
-
           style={styles.heroWrap}
         >
-          <View
-            style={[
-              styles.heroCard,
-              { backgroundColor: colors.card, borderColor: colors.border },
-            ]}
-          >
+          <GradientCard variant="glow" style={styles.heroCard}>
             {/* Glow rings behind the logo */}
             <View style={styles.heroGlowRing}>
               <View style={[styles.heroGlowRing2, { backgroundColor: withPrimaryOpacity(0.08) }]} />
@@ -160,7 +156,7 @@ export default function ProfileScreen() {
                 v{APP_VERSION} · Build {APP_VERSION.split('.')[2] ?? '0'}
               </Text>
             </View>
-          </View>
+          </GradientCard>
         </Animated.View>
 
         {/* ── Account — privacy, stats, appearance ───────────────── */}
@@ -381,7 +377,7 @@ export default function ProfileScreen() {
         {/* ── About — from remote settings ─────────────────────────────── */}
         <Text style={[styles.sectionTitle, { color: PRIMARY }]}>About</Text>
         <Animated.View>
-          <View style={[styles.aboutCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <GradientCard variant="border" style={styles.aboutCard}>
             <View style={styles.aboutHeader}>
               <View style={styles.aboutLogo}>
                 <Image
@@ -402,7 +398,7 @@ export default function ProfileScreen() {
                 {settings.aboutText}
               </Text>
             ) : null}
-          </View>
+          </GradientCard>
         </Animated.View>
 
       </ScrollView>
@@ -418,7 +414,6 @@ const styles = StyleSheet.create({
   heroWrap: { marginHorizontal: 12, marginTop: 8 },
   heroCard: {
     borderRadius: 24,
-    borderWidth: 1,
     alignItems: 'center',
     paddingVertical: 32,
     paddingHorizontal: 20,
@@ -528,7 +523,6 @@ const styles = StyleSheet.create({
   aboutCard: {
     marginHorizontal: 12,
     borderRadius: 16,
-    borderWidth: 1,
     padding: 16,
   },
   aboutHeader: {
@@ -544,6 +538,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#0D0A14',
+    overflow: 'hidden',
   },
   aboutLogoImage: { width: 36, height: 36 },
   aboutHeaderText: { flex: 1 },
