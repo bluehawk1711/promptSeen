@@ -3,8 +3,8 @@ import { View, StyleSheet, Text, Image, TouchableOpacity } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Play, Search } from 'lucide-react-native';
+import { GradientOverlay } from '@/components/ui/gradient-overlay';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -60,10 +60,7 @@ export default function VideosScreen() {
               style={styles.poster}
               resizeMode="cover"
             />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.75)']}
-              style={styles.posterGradient}
-            />
+            <GradientOverlay direction="up" style={styles.posterGradient} />
 
             {/* Center play button — the main affordance */}
             <View style={styles.playButton}>

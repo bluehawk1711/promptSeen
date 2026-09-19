@@ -4,8 +4,8 @@ import { Image } from 'expo-image';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Heart, Star, Play, Copy } from 'lucide-react-native';
+import { GradientOverlay } from '@/components/ui/gradient-overlay';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -92,11 +92,7 @@ export const PromptCard = memo(function PromptCard({
               <View style={[styles.image, compact && styles.imageCompact, { backgroundColor: 'rgba(255,255,255,0.05)' }]} />
             )}
             {/* Gradient overlay at bottom */}
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.85)']}
-              style={styles.gradient}
-              pointerEvents="none"
-            />
+            <GradientOverlay direction="up" style={styles.gradient} />
 
             {/* Category badge — bottom left, glassy */}
             {category && (

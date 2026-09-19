@@ -25,9 +25,25 @@ import {
   limit as firestoreLimit,
 } from 'firebase/firestore';
 import { getDb } from '@/lib/firebase';
-import { invalidateCache } from '@/lib/redis';
 import { cacheKeys } from '@/lib/cache-keys';
 import type { Prompt, Category, UserProfile, PromptSubmission, PushNotification, SubmissionStatus, DailyStats } from '@repo/shared/types';
+
+// ─── Server-side cache invalidation via API route ───────────────────────────
+// We call the server-side API instead of importing redis.ts directly,
+// because admin-queries.ts is imported by 'use client' pages and
+// process.env.UPSTASH_REDIS_REST_URL is not available in the browser.
+
+async function invalidateRedisCache(...keys: string[]): Promise<void> {
+  try {
+    await fetch('/api/cache/invalidate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keys }),
+    });
+  } catch {
+    // Cache invalidation failed — TTL will handle staleness
+  }
+}
 
 // ─── Query Keys ─────────────────────────────────────────────────────────────
 
@@ -72,7 +88,7 @@ export function useCreatePrompt() {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
       // Invalidate Redis cache so mobile app gets fresh data
-      invalidateCache(cacheKeys.prompts);
+      invalidateRedisCache(cacheKeys.prompts);
     },
   });
 }
@@ -90,7 +106,7 @@ export function useUpdatePrompt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
-      invalidateCache(cacheKeys.prompts);
+      invalidateRedisCache(cacheKeys.prompts);
     },
   });
 }
@@ -105,7 +121,7 @@ export function useDeletePrompt() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
-      invalidateCache(cacheKeys.prompts);
+      invalidateRedisCache(cacheKeys.prompts);
     },
   });
 }
@@ -139,7 +155,7 @@ export function useCreateCategory() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
-      invalidateCache(cacheKeys.categories);
+      invalidateRedisCache(cacheKeys.categories);
     },
   });
 }
@@ -153,7 +169,7 @@ export function useUpdateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
-      invalidateCache(cacheKeys.categories);
+      invalidateRedisCache(cacheKeys.categories);
     },
   });
 }
@@ -168,7 +184,7 @@ export function useDeleteCategory() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.categories });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
-      invalidateCache(cacheKeys.categories);
+      invalidateRedisCache(cacheKeys.categories);
     },
   });
 }
@@ -288,7 +304,7 @@ export function useApproveSubmission() {
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.submissions });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.prompts });
       queryClient.invalidateQueries({ queryKey: adminQueryKeys.stats });
-      invalidateCache(cacheKeys.prompts);
+      invalidateRedisCache(cacheKeys.prompts);
     },
   });
 }

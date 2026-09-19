@@ -27,7 +27,7 @@ import {
   Sparkles,
 } from 'lucide-react-native';
 import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
+import { GradientButton } from '@/components/ui/gradient-button';
 import Animated from 'react-native-reanimated';
 import { LayoutGrid } from 'lucide-react-native';
 
@@ -430,64 +430,38 @@ export default function PromptDetailScreen() {
           </View>
         </Animated.View>
 
-        {/* ── Action Button — orange gradient CTA ──────────────────── */}
+        {/* ── Action Button — gradient CTA ──────────────────── */}
         {isPremiumLocked ? (
           <Animated.View
           >
-            <TouchableOpacity
-              style={[styles.ctaWrap, unlocking && { opacity: 0.7 }]}
+            <GradientButton
+              direction="horizontal"
               onPress={handleUnlock}
               disabled={unlocking}
-              activeOpacity={0.85}
+              loading={unlocking}
+              icon={Lock}
+              style={[styles.ctaWrap]}
             >
-              <LinearGradient
-                colors={[colors.gradientStart, colors.gradientEnd]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.actionButton}
-              >
-                {unlocking ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                  <Lock size={17} color="#fff" />
-                )}
-                <Text style={styles.actionButtonText}>
-                  {unlocking ? 'Unlocking...' : 'Unlock Prompt'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
+              {unlocking ? 'Unlocking...' : 'Unlock Prompt'}
+            </GradientButton>
           </Animated.View>
         ) : (
           <Animated.View
           >
-            <TouchableOpacity
-              style={[styles.ctaWrap, unlocking && { opacity: 0.7 }]}
+            <GradientButton
+              direction="horizontal"
               onPress={handleCopy}
               disabled={unlocking}
-              activeOpacity={0.85}
+              loading={unlocking}
+              icon={copied ? Check : Copy}
+              style={[styles.ctaWrap]}
             >
-              <LinearGradient
-                colors={[colors.gradientStart, colors.gradientEnd]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={styles.actionButton}
-              >
-                {unlocking ? (
-                  <ActivityIndicator size="small" color="#fff" />
-                ) : copied ? (
-                  <Check size={17} color="#fff" strokeWidth={3} />
-                ) : (
-                  <Copy size={17} color="#fff" />
-                )}
-                <Text style={styles.actionButtonText}>
-                  {unlocking
-                    ? 'Watch ad to copy...'
-                    : copied
-                      ? 'Copied!'
-                      : 'Copy Prompt'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
+              {unlocking
+                ? 'Watch ad to copy...'
+                : copied
+                  ? 'Copied!'
+                  : 'Copy Prompt'}
+            </GradientButton>
           </Animated.View>
         )}
 

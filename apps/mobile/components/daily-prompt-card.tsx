@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import Animated from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Sun, Clock, ChevronRight, Flame } from 'lucide-react-native';
+import { GradientOverlay } from '@/components/ui/gradient-overlay';
 import * as Haptics from 'expo-haptics';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -72,10 +72,7 @@ export const DailyPromptCard = memo(function DailyPromptCard({
             transition={300}
             cachePolicy="memory-disk"
           />
-          <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.75)']}
-            style={styles.imageGradient}
-          />
+          <GradientOverlay direction="up" style={styles.imageGradient} />
 
           {/* Daily Pick badge */}
           <View style={styles.badge}>
