@@ -1,23 +1,23 @@
-# TS Prompt — Architecture & Development Guide
+# Prompt View — Architecture & Development Guide
 
 ## Overview
 
-TS Prompt is a curated AI prompt gallery app. Users browse prompts with images, like favorites, copy prompts, and unlock premium content via reward ads. The admin panel manages prompts, categories, and users.
+Prompt View is a curated AI prompt gallery app. Users browse prompts with images, like favorites, copy prompts, and unlock premium content via reward ads. The admin panel manages prompts, categories, and user feedback.
 
-**Stack:** React Native (Expo) + Next.js 16 + Firebase + Cloudinary + pnpm monorepo
+**Stack:** React Native (Expo 57) + Next.js 16 + Firebase + Cloudinary + pnpm monorepo
 
 ## Design System
 
 ### Color Palette
-- **Primary:** Warm orange `#F26522` (light) / `#FF7A2E` (dark)
-- **Background:** Dark brown `#0D0500` (dark mode default) / Cream `#FFFBF5` (light)
-- **Accent:** Orange glow effects with ambient lighting
+- **Primary:** Purple `#7C3AED`
+- **Background:** Dark purple `#0D0A14` (dark) / Cream `#FFFBF5` (light)
+- **Accent:** Purple glow effects with ambient lighting
 - **Text:** Warm white `#FFF5EB` (dark) / Dark brown `#1A0A00` (light)
 
 ### Design Principles
-1. **Warm & Premium** — Orange accent with brown undertones, never cold grays
+1. **Warm & Premium** — Purple accent with warm brown undertones
 2. **Glow Effects** — Subtle ambient glows around interactive elements
-3. **Cinematic Shadows** — Deep shadows with orange tint for depth
+3. **Gradient System** — Reusable gradient components (Button, Card, Badge, Overlay, Header)
 4. **Smooth Animations** — Spring-based transitions via Reanimated
 
 ## Monorepo Structure
@@ -29,10 +29,13 @@ promptSeen/
 │   └── web/                 # Next.js admin panel (admins)
 ├── packages/
 │   └── shared/              # Shared types, Firebase, Cloudinary, backup
+├── .github/workflows/       # CI/CD pipelines
 ├── package.json             # Root workspace config
 ├── pnpm-workspace.yaml      # Workspace: apps/*, packages/*
 ├── tsconfig.base.json       # Shared TS config
-└── AGENTS.md                # This file
+├── AGENTS.md                # This file
+├── README.md                # Project overview + setup guide
+└── PERFORMANCE-PLAN.md      # Zero-loading architecture plan
 ```
 
 ## Shared Package (`packages/shared`)
@@ -40,7 +43,7 @@ promptSeen/
 Single source of truth for domain types and utilities.
 
 ### Exports
-- **Types:** `Prompt`, `Category`, `CategoryCreateInput`, `UserProfile`, `CloudinaryUploadResult`, `BackupData`
+- **Types:** `Prompt`, `Category`, `UserProfile`, `Feedback`, `PromptSubmission`, `CloudinaryUploadResult`, `BackupData`
 - **Firebase:** `initFirebase()` — platform-agnostic initialization with emulator support
 - **Config:** `loadFirebaseConfig(prefix)` — loads `EXPO_PUBLIC_*` or `NEXT_PUBLIC_*` env vars
 - **Errors:** `messageFor(error)` — user-friendly Firebase error messages
@@ -51,7 +54,7 @@ Single source of truth for domain types and utilities.
 
 ### Import Paths
 ```ts
-import { Prompt, Category } from '@repo/shared/types';
+import { Prompt, Category, Feedback } from '@repo/shared/types';
 import { initFirebase } from '@repo/shared/firebase';
 import { loadFirebaseConfig } from '@repo/shared/config';
 import { messageFor } from '@repo/shared/errors';
@@ -65,32 +68,37 @@ import { Colors } from '@repo/shared/theme';
 ### Screens
 | Route | Screen | Description |
 |-------|--------|-------------|
-| `/(tabs)/` | Home | Prompt grid with search, categories, banner ads |
+| `/(tabs)/` | Home | Prompt grid with daily prompt, trending, search, categories |
 | `/(tabs)/favorites` | Favorites | Liked prompts grid |
-| `/(tabs)/settings` | Settings | Theme toggle, data management |
-| `/(tabs)/about` | About | App info and features |
-| `/prompt/[id]` | Detail | Hero image, prompt text, copy, share, related prompts |
+| `/(tabs)/videos` | Videos | Video prompts (YouTube + uploaded) |
+| `/(tabs)/profile` | Profile | Settings, theme, feedback, social links, about |
+| `/prompt/[id]` | Detail | Hero image, prompt text, copy, share, AI buttons (ChatGPT/Gemini) |
+| `/feedback` | Feedback | Submit bug reports, feature requests, star ratings |
 | `/onboarding` | Onboarding | 3-step premium intro with tilted image cards |
-
-### Onboarding Design
-1. **Step 1 — "Find Powerful AI Prompts"**: 4 tilted floating cards with ambient glow
-2. **Step 2 — "Generate Trending"**: Single large card with tags
-3. **Step 3 — "Enjoying TS Prompt?"**: Heart icon, 5 stars, rate button
+| `/privacy-policy` | Privacy | Privacy policy |
 
 ### State Management (Zustand)
 - **`theme`** — Persisted theme mode (light/dark/system) → drives `ModeProvider` → `useColorScheme()`
 - **`prompts`** — Firestore realtime sync, category filter, search
 - **`categories`** — Firestore realtime sync
 - **`favorites`** — Local persisted (AsyncStorage), toggle like, premium unlock
+- **`feedback`** — Firestore write for user feedback submission
 - **`onboarding`** — Persisted first-launch tracking + current step
 - **`auth`** — Admin auth state (persisted)
 
 ### Key Components
-- **`PromptCard`** — Premium card with gradient overlay, glass like button, haptic feedback
+- **`PromptCard`** — Premium card with gradient overlay, glass-like button, haptic feedback
+- **`DailyPromptCard`** — Featured daily prompt with gradient overlay
+- **`TrendingCard`** — Horizontal trending prompt card with rank badge
 - **`CategoryChips`** — Animated horizontal filter pills
 - **`VideoPlayer`** — WebView player for prompt videos (YouTube embed + Cloudinary MP4)
 - **`AdBanner`** — AdMob banner (every 6 cards)
 - **`RewardAd`** — Hook for reward ads to unlock premium prompts
+- **`GradientButton`** — Animated CTA with expo-linear-gradient + Reanimated spring
+- **`GradientCard`** — Border/solid/glow card variants
+- **`GradientBadge`** — Purple gradient pill badge
+- **`GradientOverlay`** — Reusable image gradient overlay
+- **`GradientHeader`** — LinearGradient page header
 
 ### Theme Flow
 ```
@@ -101,12 +109,19 @@ ModeProvider reads store → sets native Appearance
 useColorScheme() → Colors[colorScheme] → all components
 ```
 
+### Premium Prompt Flow
+- **Non-premium:** Direct copy (no ad, no blur/badge)
+- **Premium locked:** Ad required to unlock → `useRewardAd` → `unlockPremium(promptId)`
+- **Premium unlocked:** Direct copy (no ad again)
+- **Persisted:** `unlockedPremiumIds` in Zustand/AsyncStorage
+
 ### Dependencies
 - Expo 57, React Native 0.86
 - `react-native-reanimated` — animations
 - `react-native-google-mobile-ads` — AdMob (BannerAd, RewardedAd)
 - `expo-clipboard` — copy prompts
 - `expo-haptics` — haptic feedback
+- `expo-image` — optimized image rendering with disk cache
 - `bna-ui` — UI components (bottom-sheet, skeleton, spinner, etc.)
 - `zustand` — state management
 - `@react-native-async-storage/async-storage` — persistence
@@ -116,11 +131,14 @@ useColorScheme() → Colors[colorScheme] → all components
 ### Pages
 | Route | Page | Description |
 |-------|------|-------------|
-| `/admin` | Dashboard | Stats overview (prompts, categories, users, likes) |
+| `/admin` | Dashboard | Stats: prompts, categories, engagement, feedback, notifications |
 | `/admin/login` | Login | Email/password admin authentication |
-| `/admin/prompts` | Prompts | CRUD table with image upload pipeline |
+| `/admin/prompts` | Prompts | CRUD table with image upload, category filter |
 | `/admin/categories` | Categories | CRUD with color picker and emoji |
-| `/admin/users` | Users | View users, toggle admin role |
+| `/admin/feedback` | Feedback | View user feedback (new/read/archived), mark as read |
+| `/admin/analytics` | Analytics | Usage analytics and trends |
+| `/admin/notifications` | Notifications | Send push notifications (all/specific token/topic) |
+| `/admin/app-settings` | App Settings | Remote config (social links, about text, version) |
 | `/admin/settings` | Settings | Backup/restore, Firebase info |
 
 ### Auth Flow
@@ -136,7 +154,7 @@ AdminLayout redirects to /admin/login if not authenticated
 ```
 Select/Drop image → validate (type, size)
     ↓
-Compress (Canvas API: resize to 1080×1350, JPEG 82%)
+Compress (Canvas API: resize to 1080x1350, JPEG 82%)
     ↓
 Upload to Cloudinary (unsigned, with progress)
     ↓
@@ -145,7 +163,13 @@ Save URL + publicId to Firestore
 
 ### Key Components
 - **`ImageUpload`** — Drag-drop with compression preview and Cloudinary upload
+- **`VideoUpload`** — YouTube URL or file upload with Cloudinary video storage
 - 18 shadcn/ui components (button, card, table, dialog, input, select, etc.)
+- **`GradientButton`** — Tailwind CSS gradient CTA with direction prop
+- **`GradientCard`** — Border/solid/glow card variants
+- **`GradientBadge`** — Purple gradient pill badge
+- **`GradientOverlay`** — CSS gradient overlay
+- **`GradientHeader`** — Page header with gradient background
 - PWA support via `next-pwa`
 
 ### Dependencies
@@ -153,6 +177,7 @@ Save URL + publicId to Firestore
 - Firebase (client SDK)
 - shadcn/ui + Tailwind CSS 4
 - `zustand` — state management
+- `@tanstack/react-query` — server state
 - `next-pwa` — Progressive Web App
 
 ## Firebase Collections
@@ -164,13 +189,14 @@ Save URL + publicId to Firestore
   text: string;                  // Prompt text to copy
   imageUrl: string;              // Cloudinary URL
   cloudinaryPublicId: string;    // For management/deletion
-  categoryId: string;            // Reference to category
+  categoryIds: string[];         // References to categories (multi-category)
   order: number;                 // Display order
   likesCount: number;            // Denormalized counter
   copiesCount: number;           // Denormalized counter
+  shareCount: number;            // Denormalized counter
   tags: string[];                // Search tokens
   isActive: boolean;             // Visibility toggle
-  isPremium: boolean;            // Requires reward ad
+  isPremium: boolean;            // Requires reward ad to unlock
   video?: {                      // Optional — null/absent = image-only prompt
     type: 'upload' | 'youtube';  // Cloudinary file or YouTube embed
     url: string;                 // MP4 delivery URL (upload) or YT link
@@ -209,9 +235,56 @@ Save URL + publicId to Firestore
 }
 ```
 
+### `feedback`
+```ts
+{
+  id: string;                    // Firestore doc ID
+  userId: string;                // User UID or 'anonymous'
+  userName: string;              // Display name
+  userEmail: string;             // Email (optional)
+  category: 'bug' | 'feature' | 'improvement' | 'other';
+  message: string;               // Feedback text
+  rating: number | null;         // Star rating 1-5
+  status: 'new' | 'read' | 'archived';
+  adminNote: string;             // Admin notes
+  createdAt: number;             // Epoch ms
+}
+```
+
+### `fcm_tokens`
+```ts
+{
+  token: string;                 // Expo push token
+  userId: string | null;         // Associated user UID
+  platform: 'ios' | 'android';
+  appVersion: string;
+  isActive: boolean;
+  createdAt: number;
+  lastSeenAt: number;
+}
+```
+
+### `push_notifications`
+```ts
+{
+  title: string;
+  body: string;
+  imageUrl: string;
+  data: Record<string, string>;
+  target: 'all' | 'topic' | 'token';
+  sentCount: number;
+  deliveredCount: number;
+  openedCount: number;
+  sentBy: string;
+  source: 'manual' | 'auto';
+  promptId: string | null;
+  createdAt: number;
+}
+```
+
 ## Cloudinary Configuration
 
-- **Target:** 1080×1350 (4:5 portrait), JPEG 82% quality
+- **Target:** 1080x1350 (4:5 portrait), JPEG 82% quality
 - **Upload:** Unsigned preset `prompts` (configurable)
 - **Video:** Unsigned upload to `/video/upload` (folder `prompts/videos`, max 100MB), delivered as MP4 via `q_auto:good,vc_h264`
 - **Transforms:** Server-side `c_fill,w_1080,h_1350,q_82,f_auto` as safety net
@@ -230,13 +303,54 @@ Save URL + publicId to Firestore
 
 - **Banner:** Every 6th card in the grid + prompt detail page
 - **Reward:** Watch ad to unlock premium prompts
-- **Test IDs:** Currently using Google test ad units
+- **Production App ID:** `ca-app-pub-4814079986644290~8071437379`
 
 ### Required Env Vars
 | Var | Where | Purpose |
 |-----|-------|---------|
 | `EXPO_PUBLIC_ADMOB_BANNER_AD_UNIT_ID` | Mobile | Banner ads |
 | `EXPO_PUBLIC_ADMOB_REWARD_AD_UNIT_ID` | Mobile | Reward ads |
+
+## Push Notifications
+
+- **Registration:** Automatic on app open via `expo-notifications`
+- **Token storage:** Firestore `fcm_tokens` collection
+- **Channels:** `default` (all), `prompts` (new prompts)
+- **Delivery:** Expo Push Notification API with `extra.eas.projectId`
+- **Auto-notify:** New prompts trigger notification to all users
+- **Admin:** Manual send from `/admin/notifications`
+- **Cleanup:** Stale tokens (DeviceNotRegistered) auto-deactivated on send failure
+
+## Performance Architecture
+
+See [PERFORMANCE-PLAN.md](PERFORMANCE-PLAN.md) for the full zero-loading architecture.
+
+**3-Layer Cache:**
+1. **AsyncStorage** (0ms) — persists 24 hours
+2. **Upstash Redis** (~1-5ms) — via admin panel API
+3. **Firestore realtime** (50-200ms) — always subscribed for live updates
+
+**Image Optimization:**
+- `expo-image` with `cachePolicy="memory-disk"` for all images
+- Prefetch first 24 images on app mount
+- Adjacent image prefetch on detail screen
+
+## CI/CD
+
+### GitHub Environments
+
+| Environment | Firebase | Secrets |
+|-------------|----------|---------|
+| `dev` | `promtapp-e6c0e` | Firebase (dev), Cloudinary, Upstash, Admin SDK |
+| `production` | `prompt-view-e59bc` | Firebase (prod), AdMob (prod), Admin API URL |
+
+### Workflows
+
+| Workflow | Trigger | Environment |
+|----------|---------|-------------|
+| `build-android.yml` | Manual (dev/release) | `dev` or `production` |
+| `build-android-production.yml` | Manual | `production` |
+| `build-web.yml` | Push to main / manual | `production` |
 
 ## Development
 
@@ -253,6 +367,9 @@ pnpm install
 # Copy env files
 cp apps/mobile/.env.example apps/mobile/.env
 cp apps/web/.env.example apps/web/.env
+
+# Build shared package
+pnpm --filter @repo/shared build
 
 # Start mobile app
 cd apps/mobile && pnpm start
@@ -282,13 +399,13 @@ pnpm emulators:seed     # Seed sample data
 The admin panel Settings page provides:
 - **Export:** Downloads all Firestore data as JSON
 - **Import:** Uploads a backup file and restores documents
-- **Scope:** prompts, categories, users collections
+- **Scope:** prompts, categories, users, feedback collections
 
 ## Design Principles
 
 1. **Zero duplication** — All shared logic lives in `packages/shared`
 2. **Instant theme switching** — Zustand store drives all theme decisions
 3. **Offline-first** — Favorites persist locally, Firestore syncs when available
-4. **Premium feel** — Reanimated animations, haptic feedback, cinematic shadows
+4. **Premium feel** — Reanimated animations, haptic feedback, gradient components
 5. **Accessible** — Safe area insets, proper contrast, semantic HTML
-6. **Warm & inviting** — Orange accent with brown tones, never cold grays
+6. **Warm & inviting** — Purple accent with warm brown tones

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "988696607420",
-    "project_id": "prompt-view-e59bc",
-    "storage_bucket": "prompt-view-e59bc.firebasestorage.app"
+    "project_number": "319396117538",
+    "project_id": "promtapp-e6c0e",
+    "storage_bucket": "promtapp-e6c0e.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:988696607420:android:341dad30bacf78ead66eb9",
+        "mobilesdk_app_id": "1:319396117538:android:ef85f3fb8b6bb4db9f1e7b",
         "android_client_info": {
           "package_name": "com.promptgallery.app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCr-ZQlpgRL5f19Ci3t_0obrdORrm9_4Co"
+          "current_key": "AIzaSyCvEqfn4imwD0NrVHtdbf2UYOG3P5mSqXg"
         }
       ],
       "services": {

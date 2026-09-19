@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Prompt View",
-    "slug": "promptgallery",
+    "slug": "prompt-view",
     "scheme": "promptgallery",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -45,7 +45,7 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713",
+          "androidAppId": "ca-app-pub-4814079986644290~8071437379",
           "iosAppId": "ca-app-pub-3940256099942544~1458001516"
         }
       ],
@@ -79,6 +79,7 @@
       "eas": {
         "projectId": "8ad35bf6-d0b0-4009-af51-687b5636f095"
       }
-    }
+    },
+    "owner": "prompt-views-team"
   }
 }
